@@ -1,4 +1,5 @@
-mod zip;
+mod archive;
+pub mod dto;
 
 use crate::{
     build_tools::{BuildStatus, BuildTool},

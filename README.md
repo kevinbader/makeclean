@@ -18,6 +18,10 @@ What does this do? Its main features:
 - [`makeclean`](#makeclean)
   - [Prerequisites](#prerequisites)
   - [Usage](#usage)
+    - [List projects](#list-projects)
+    - [Clean projects](#clean-projects)
+    - [Clean + archive projects](#clean--archive-projects)
+    - [Use case: automatically run for multiple project directories](#use-case-automatically-run-for-multiple-project-directories)
   - [Limitations](#limitations)
   - [Hack it](#hack-it)
   - [TODO](#todo)
@@ -30,55 +34,65 @@ What does this do? Its main features:
 
 ## Usage
 
-List all projects under a given path:
+> Run `makeclean --help` to see all available options.
+
+### List projects
+
+List all projects under a given path using `--list`/`-l`:
 
 ```bash
-makeclean list --all ~/projects
+makeclean --list ~/projects
 ```
 
-List project using a certain build tool:
+List all projects under a given path that have not changed in the last month using `--min-age`/`-m`:
 
 ```bash
-makeclean list --all --type npm
+makeclean --list --min-age=1m ~/projects
 ```
 
-List only those that haven't been touched in half a year and can be safely cleaned:
+Set it to zero to disable the check:
 
 ```bash
-makeclean list --max-age=6m
+makeclean --list --min-age=0 ~/projects
 ```
 
-Clean those projects (with prompt):
+You can also filter by build tool using `--type`/`-t`:
 
 ```bash
-makeclean clean --max-age=6m
+makeclean --list --type npm ~/projects
 ```
 
-Same thing but without the prompt:
+### Clean projects
+
+By default, `makeclean` looks for any projects that haven't been touched for a month, and offers to clean them:
 
 ```bash
-makeclean clean --max-age=6m --yes
+makeclean ~/projects
 ```
 
-Dry run to see what would happen without actually deleting anything:
+Use `--dry-run`/`-n` to see what would happen, without actually deleting anything:
 
 ```bash
-makeclean clean --max-age=6m --dry-run
+makeclean --dry-run ~/projects
 ```
 
-If you also want to zip the projects after cleaning them:
+If you run `makeclean` in a script and don't want the prompt, you can pass `--yes` to proceed automatically:
 
 ```bash
-makeclean clean --zip
+makeclean --yes ~/projects
 ```
 
-If you _only_ want to archive them, without cleaning them first:
+### Clean + archive projects
+
+If you also want to archive the projects after cleaning them up, pass `--archive`. For example, the following command would replace the contents of `~/projects/foo` with `~/projects/foo.tar.xz`, after cleaning it:
 
 ```bash
-makeclean zip
+makeclean --archive ~/projects/foo
 ```
 
-Let's say you have a list of directories where you know you'll create a lot of one-off projects you don't need to keep around in a ready state:
+### Use case: automatically run for multiple project directories
+
+Let's say you have a list of directories where you know you'll create a lot of one-off projects you don't need to keep around in a ready state. You can use the following command to automically process them:
 
 ```bash
 $ cat playground.txt
@@ -87,12 +101,8 @@ $ cat playground.txt
 ~/code/flutter-playground
 
 $ # Replacing newlines with zero-bytes is needed to process whitespace correctly without fiddling around with IFS...
-$ xargs -0 -n 1 makeclean clean --archive --max-age=7d --yes < <(tr \\n \\0 <playground.txt)
+$ xargs -0 -n 1 makeclean --min-age=7d --yes < <(tr \\n \\0 <playground.txt)
 ```
-
-Finally, to be able to add your own processing on top, try `makeclean list --json`.
-
-Run `makeclean --help` to see all available options.
 
 ## Limitations
 
@@ -104,8 +114,8 @@ Check out the documentation on crates.io.
 
 ## TODO
 
-- [ ] tests!
-- [ ] optionally zip source code folders after removing the build dirs
+- [X] tests!
+- [ ] optionally tar source code folders after removing the build dirs
 - [ ] use the build tool's clean feature instead of manually removing directories; e.g. npm clean, cargo clean, mix clean, ... (maybe even check whether there's a Makefile with a clean target)
 - [ ] CLI options:
   - [X] root directory

@@ -1,6 +1,6 @@
+pub mod archive;
 pub mod clean;
 pub mod list;
-pub mod zip;
 
 use std::{fs, io, path::Path, process::Command};
 

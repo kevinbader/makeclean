@@ -1,21 +1,71 @@
 use anyhow::Result;
 use assert_cmd::prelude::CommandCargoExt;
-use assert_fs::{
-    fixture::{FileTouch, PathChild},
-    TempDir,
-};
-use std::{
-    fs::{self, OpenOptions},
-    process::Command,
-};
-use zip::ZipArchive;
+use assert_fs::{fixture::PathChild, TempDir};
+use std::process::Command;
 
 use crate::cargo_test::cargo_init;
 
 use super::cargo_build;
 
 #[test]
-fn clean_built_project_removes_target_dir() -> Result<()> {
+fn the_prompt_only_lists_projects_that_need_cleaning() -> Result<()> {
+    let root = TempDir::new()?;
+
+    let _clean_project = {
+        let dir = root.child("the-clean-project");
+        cargo_init(&dir)?;
+        dir
+    };
+
+    let _built_project = {
+        let dir = root.child("the-built-project");
+        cargo_init(&dir)?;
+        cargo_build(&dir)?;
+        dir
+    };
+
+    // Only the built project is listed:
+
+    let output = Command::cargo_bin("makeclean")?
+        .args(["--dry-run", "--min-age", "0", "--json"])
+        .current_dir(&root)
+        .output()?;
+    dbg!(String::from_utf8(output.stderr)?);
+    assert!(output.status.success());
+    let output = String::from_utf8(output.stdout)?;
+
+    assert!(output.contains("the-built-project"));
+    assert!(!output.contains("the-clean-project"));
+
+    Ok(())
+}
+
+#[test]
+fn doesnt_consider_new_project_with_default_min_age_setting() -> Result<()> {
+    // Note that `--list` has a different default (--min-age=0)!
+
+    let root = TempDir::new()?;
+    let project_dir = root.child("project");
+    cargo_init(&project_dir)?;
+
+    let output = Command::cargo_bin("makeclean")?
+        .args(["--dry-run"])
+        .current_dir(&root)
+        .output()?;
+    dbg!(String::from_utf8(output.stderr)?);
+    assert!(output.status.success());
+    let output = String::from_utf8(output.stdout)?;
+
+    assert!(
+        output.trim().is_empty(),
+        "Expected no output, got: {output:?}"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn cleaning_a_built_project_removes_target_dir() -> Result<()> {
     let root = TempDir::new()?;
     let project_dir = root.child("project");
     cargo_init(&project_dir)?;
@@ -25,7 +75,7 @@ fn clean_built_project_removes_target_dir() -> Result<()> {
     assert!(target_dir.path().exists());
 
     let output = Command::cargo_bin("makeclean")?
-        .args(["clean", "--min-age", "0", "--type", "cargo", "--yes"])
+        .args(["--min-age", "0", "--type", "cargo", "--yes"])
         .current_dir(&root)
         .output()?;
 
@@ -40,7 +90,7 @@ fn clean_built_project_removes_target_dir() -> Result<()> {
 }
 
 #[test]
-fn cleaning_with_dry_run_is_a_noop() -> Result<()> {
+fn cleaning_with_yes_and_dry_run_is_a_dry_run() -> Result<()> {
     let root = TempDir::new()?;
     let project_dir = root.child("project");
     cargo_init(&project_dir)?;
@@ -50,15 +100,7 @@ fn cleaning_with_dry_run_is_a_noop() -> Result<()> {
     assert!(target_dir.path().exists());
 
     let output = Command::cargo_bin("makeclean")?
-        .args([
-            "clean",
-            "--min-age",
-            "0",
-            "--type",
-            "cargo",
-            "--yes",
-            "--dry-run",
-        ])
+        .args(["--min-age", "0", "--type", "cargo", "--yes", "--dry-run"])
         .current_dir(&root)
         .output()?;
 
@@ -82,7 +124,7 @@ fn cleaning_a_cleaned_project_is_a_noop() -> Result<()> {
     assert!(!target_dir.path().exists());
 
     let output = Command::cargo_bin("makeclean")?
-        .args(["clean", "--min-age", "0", "--type", "cargo", "--yes"])
+        .args(["--min-age", "0", "--type", "cargo", "--yes"])
         .current_dir(&root)
         .output()?;
 
@@ -92,71 +134,6 @@ fn cleaning_a_cleaned_project_is_a_noop() -> Result<()> {
     assert!(output.status.success());
 
     // TODO: Assert that indeed nothing has changed here?
-
-    Ok(())
-}
-
-#[test]
-fn passing_zip_to_clean_cleans_the_project_first() -> Result<()> {
-    let root = TempDir::new()?;
-    let project_dir = root.child("project");
-    cargo_init(&project_dir)?;
-    cargo_build(&project_dir)?;
-
-    // Just for fun, also add a hidden file and later make sure it's still there
-    project_dir.child(".hidden-test").touch()?;
-
-    let target_dir = project_dir.child("target");
-    assert!(target_dir.path().exists());
-
-    let output = Command::cargo_bin("makeclean")?
-        .args([
-            "clean",
-            "--min-age",
-            "0",
-            "--type",
-            "cargo",
-            "--yes",
-            "--zip",
-        ])
-        .current_dir(&root)
-        .output()?;
-
-    // It runs successfully:
-    assert_eq!(String::from_utf8(output.stderr)?.trim(), "");
-    assert!(output.status.success());
-
-    // The only thing remaining is the zip file (filename is project name)
-
-    let zip_fname = "cargo_test_project.zip";
-    let files_present: Vec<String> = fs::read_dir(&project_dir)
-        .unwrap()
-        .map(|x| x.unwrap())
-        .map(|x| x.file_name().into_string().unwrap())
-        .collect();
-    assert_eq!(
-        files_present.len(),
-        1,
-        "Expected only the zip file, got: {files_present:?}"
-    );
-    assert_eq!(files_present[0], zip_fname);
-
-    // The zip doesn't contain the build dir:
-
-    let zip_file = OpenOptions::new()
-        .read(true)
-        .open(project_dir.join(zip_fname))
-        .unwrap();
-    let mut zip = ZipArchive::new(zip_file).unwrap();
-    // Let's use a new temporary directory for this..
-    let extract_root = TempDir::new()?;
-    zip.extract(&extract_root).unwrap();
-    // Cargo.toml was extracted:
-    assert!(extract_root.child("Cargo.toml").exists());
-    // The `target` dir doesn't:
-    assert!(!extract_root.child("target").exists());
-    // Finally, the hidden file was also included in the zip file:
-    assert!(extract_root.child(".hidden-test").exists());
 
     Ok(())
 }

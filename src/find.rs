@@ -54,7 +54,7 @@ impl<'a> Iterator for Iter<'a> {
                 self.build_tool_manager,
             ) {
                 Ok(Some(project)) => {
-                    trace!(?project.path, "project found");
+                    debug!("project found at {:?}", project.path);
                     return Some(project);
                 }
                 Ok(None) => {}
@@ -79,6 +79,16 @@ fn process_next_dir(
 
     let vcs = VersionControlSystem::try_from(&path)?;
 
+    // This check really only catches the top-level directory, as the
+    // subdirectories are checked for this before being added to the queue
+    if let Some(ref vcs) = vcs {
+        if vcs.is_path_ignored(&path) {
+            debug!(?path, "skipping directory ignored by VCS");
+            trace!("<-- {path}");
+            return Ok(None);
+        }
+    }
+
     // We ignore any IO errors for individual directory entries
     while let Some(Ok(entry)) = entries.next() {
         let path = entry.path();
@@ -101,9 +111,6 @@ fn process_next_dir(
     }
 
     let project = Project::from_dir(&path, project_filter, vcs, build_tool_manager);
-    if project.is_some() {
-        trace!(?path, "project found");
-    }
     trace!("<-- {path}");
     Ok(project)
 }
