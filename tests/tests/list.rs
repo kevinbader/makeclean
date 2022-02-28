@@ -11,7 +11,7 @@ use fs_set_times::set_mtime;
 use makeclean::ProjectDto;
 use walkdir::WalkDir;
 
-use crate::util::cargo::cargo_init;
+use crate::util::{cargo::cargo_init, git::git_init};
 
 #[test]
 fn find_new_project_without_git() -> Result<()> {
@@ -30,6 +30,29 @@ fn find_new_project_without_git() -> Result<()> {
     // We expect a single line/project
     let project: ProjectDto = serde_json::from_str(output.trim()).unwrap();
     assert_eq!(project.path, project_dir.path().to_str().unwrap());
+
+    Ok(())
+}
+
+#[test]
+fn directories_ignored_by_git_are_not_considered() -> Result<()> {
+    // Set up the test directory, with a project in each directory - only one will be found
+    let root = TempDir::new()?;
+    cargo_init(&root.child("normal_dir"))?;
+    cargo_init(&root.child("ignored_dir"))?;
+    git_init(&root, "/ignored_dir", true);
+
+    let output = Command::cargo_bin("makeclean")?
+        .args(["--list", "--json"])
+        .current_dir(&root)
+        .output()?;
+    dbg!(String::from_utf8(output.stderr)?);
+    assert!(output.status.success());
+    let output = String::from_utf8(output.stdout)?;
+
+    // Only the project in `normal_dir` is returned:
+    let project: ProjectDto = serde_json::from_str(output.trim()).unwrap();
+    assert_eq!(project.path, root.join("normal_dir").to_str().unwrap());
 
     Ok(())
 }

@@ -82,34 +82,6 @@ use crate::util::{
 // }
 
 #[test]
-fn directories_ignored_by_git_are_not_considered() -> Result<()> {
-    // Set up the test directory, with a project in each directory - only one will be found
-    let root = TempDir::new()?;
-    cargo_init(&root.child("normal_dir"))?;
-    cargo_init(&root.child("ignored_dir"))?;
-
-    git_init(&root, "/ignored_dir", true);
-
-    // Only the project in `normal_dir` is returned:
-    let root_path = Utf8Path::from_path(root.path()).unwrap();
-    let projects: Vec<Project> = projects_below(
-        root_path,
-        &noop_project_filter(),
-        &BuildToolManager::default(),
-    )
-    .collect();
-
-    assert_eq!(
-        projects.len(),
-        1,
-        "Expected one projects, got: {projects:?}"
-    );
-    assert_eq!(projects[0].path, root_path.join("normal_dir"));
-
-    Ok(())
-}
-
-#[test]
 fn subprojects_are_discovered() -> Result<()> {
     // Setup: a Cargo project that contains a NPM project (e.g. a frontend) in a subdirectory.
     let root = TempDir::new()?;
