@@ -85,10 +85,10 @@ fn subprojects_are_discovered() -> Result<()> {
     );
     assert!(projects
         .iter()
-        .any(|p| p.path == root.path().display().to_string() && p.build_tools == vec!["Cargo"]));
+        .any(|p| p.path == root.path().to_str().unwrap() && p.build_tools == vec!["Cargo"]));
     assert!(projects
         .iter()
-        .any(|p| p.path == root.join("web").display().to_string() && p.build_tools == vec!["NPM"]));
+        .any(|p| p.path == root.join("web").to_str().unwrap() && p.build_tools == vec!["NPM"]));
 
     Ok(())
 }
