@@ -6,6 +6,7 @@ description = "Remove build artifacts for projects you're not working on."
 authors = ["Kevin Bader <kevinbader@users.noreply.github.com>"]
 license = "MIT"
 repository = "https://github.com/kevinbader/makeclean"
+homepage = "https://github.com/kevinbader/makeclean"
 categories = ["command-line-utilities", "development-tools"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -24,6 +25,7 @@ console = "0.15.0"
 dialoguer = "0.10.0"
 displaydoc = "0.2.3"
 git2 = "0.13.23"
+human-panic = "1.0.3"
 regex = "1.5.4"
 serde = { version = "1.0.136", features = ["derive"] }
 tabular = "0.1.4"

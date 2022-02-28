@@ -5,10 +5,13 @@ use dialoguer::{
     theme::{ColorfulTheme, SimpleTheme, Theme},
     Confirm,
 };
-use makeclean::{projects_below, BuildToolManager, Cli, Command, Project, ProjectFilter};
+use std::{env, panic};
 use tracing_subscriber::util::SubscriberInitExt;
 
+use makeclean::{projects_below, BuildToolManager, Cli, Command, Project, ProjectFilter};
+
 fn main() -> anyhow::Result<()> {
+    setup_panic_hooks();
     setup_logging();
 
     let cli = Cli::parse();
@@ -170,6 +173,27 @@ fn format_project(project: &Project, term: &Term, _use_json: bool, paths_only: b
     } else {
         format!("{} ({}; {})", path, tools, vcs)
     }
+}
+
+fn setup_panic_hooks() {
+    let meta = human_panic::Metadata {
+        version: env!("CARGO_PKG_VERSION").into(),
+        name: env!("CARGO_PKG_NAME").into(),
+        authors: env!("CARGO_PKG_AUTHORS").replace(':', ", ").into(),
+        homepage: env!("CARGO_PKG_HOMEPAGE").into(),
+    };
+
+    let _default_hook = panic::take_hook();
+
+    panic::set_hook(Box::new(move |info: &panic::PanicInfo| {
+        // // First call the default hook that prints to standard error.
+        // default_hook(info);
+
+        // Then call human_panic.
+        let file_path = human_panic::handle_dump(&meta, info);
+        human_panic::print_msg(file_path, &meta)
+            .expect("human-panic: printing error message to console failed");
+    }));
 }
 
 pub fn setup_logging() {
