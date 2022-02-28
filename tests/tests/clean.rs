@@ -3,9 +3,7 @@ use assert_cmd::prelude::CommandCargoExt;
 use assert_fs::{fixture::PathChild, TempDir};
 use std::process::Command;
 
-use crate::cargo_test::cargo_init;
-
-use super::cargo_build;
+use crate::util::cargo::{cargo_build, cargo_init};
 
 #[test]
 fn the_prompt_only_lists_projects_that_need_cleaning() -> Result<()> {

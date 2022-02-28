@@ -11,7 +11,7 @@ use fs_set_times::set_mtime;
 use makeclean::ProjectDto;
 use walkdir::WalkDir;
 
-use crate::cargo_test::cargo_init;
+use crate::util::cargo::cargo_init;
 
 #[test]
 fn find_new_project_without_git() -> Result<()> {

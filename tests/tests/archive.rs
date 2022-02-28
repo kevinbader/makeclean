@@ -10,9 +10,7 @@ use std::{
 };
 use xz::read::XzDecoder;
 
-use crate::cargo_test::cargo_init;
-
-use super::cargo_build;
+use crate::util::cargo::{cargo_build, cargo_init};
 
 #[test]
 fn archive_cleans_then_packs_includes_hidden_files_then_removes_project_files() -> Result<()> {

@@ -1,4 +1,4 @@
-mod cargo_test;
+mod tests;
 mod util;
 
 use anyhow::Result;
@@ -6,9 +6,8 @@ use assert_fs::{prelude::*, TempDir};
 use camino::Utf8Path;
 use makeclean::{projects_below, BuildToolManager, Project};
 
-use crate::{
-    cargo_test::cargo_init,
-    util::{git::git_init, noop_project_filter, npm_init},
+use crate::util::{
+    cargo::cargo_init, git::git_init, npm::npm_init, project_filter::noop_project_filter,
 };
 
 // #[test]

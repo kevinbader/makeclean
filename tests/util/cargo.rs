@@ -1,7 +1,3 @@
-pub mod archive;
-pub mod clean;
-pub mod list;
-
 use std::{fs, io, path::Path, process::Command};
 
 use anyhow::{bail, Result};

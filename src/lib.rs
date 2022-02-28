@@ -67,7 +67,9 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
     }
 
     if projects.is_empty() {
-        println!("No projects found.");
+        // TODO: Perhaps output "No projects found. Try running with RUST_LOG=trace to see why."
+        // This will fail tests, which currently expect no output besides projects. A `--quiet` switch should help.
+
         return Ok(());
     }
 
