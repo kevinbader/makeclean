@@ -11,7 +11,7 @@ use fs_set_times::set_mtime;
 use makeclean::ProjectDto;
 use walkdir::WalkDir;
 
-use crate::util::{cargo::cargo_init, git::git_init};
+use crate::util::{cargo::cargo_init, git::git_init, npm::npm_init};
 
 #[test]
 fn find_new_project_without_git() -> Result<()> {
@@ -53,6 +53,42 @@ fn directories_ignored_by_git_are_not_considered() -> Result<()> {
     // Only the project in `normal_dir` is returned:
     let project: ProjectDto = serde_json::from_str(output.trim()).unwrap();
     assert_eq!(project.path, root.join("normal_dir").to_str().unwrap());
+
+    Ok(())
+}
+
+#[test]
+fn subprojects_are_discovered() -> Result<()> {
+    // Setup: a Cargo project that contains a NPM project (e.g. a frontend) in a subdirectory.
+    let root = TempDir::new()?;
+    cargo_init(&root)?;
+    npm_init(&root.child("web"))?;
+
+    let output = Command::cargo_bin("makeclean")?
+        .args(["--list", "--json"])
+        .current_dir(&root)
+        .output()?;
+    dbg!(String::from_utf8(output.stderr)?);
+    assert!(output.status.success());
+    let output = String::from_utf8(output.stdout)?;
+
+    // Both projects are discovered:
+    let projects: Vec<ProjectDto> = output
+        .trim()
+        .lines()
+        .map(|line| serde_json::from_str(line).unwrap())
+        .collect();
+    assert_eq!(
+        projects.len(),
+        2,
+        "Expected both projects, got: {projects:?}"
+    );
+    assert!(projects
+        .iter()
+        .any(|p| p.path == root.path().display().to_string() && p.build_tools == vec!["Cargo"]));
+    assert!(projects
+        .iter()
+        .any(|p| p.path == root.join("web").display().to_string() && p.build_tools == vec!["NPM"]));
 
     Ok(())
 }

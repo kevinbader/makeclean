@@ -137,6 +137,8 @@ fn print_project(project: &Project, json: bool) -> anyhow::Result<()> {
     if json {
         let dto = ProjectDto::from(project);
         serde_json::to_writer(io::stdout(), &dto)?;
+        // Add the newline:
+        println!();
     } else {
         println!("{project}");
     }

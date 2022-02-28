@@ -80,29 +80,3 @@ use crate::util::{
 
 //     Ok(())
 // }
-
-#[test]
-fn subprojects_are_discovered() -> Result<()> {
-    // Setup: a Cargo project that contains a NPM project (e.g. a frontend) in a subdirectory.
-    let root = TempDir::new()?;
-    cargo_init(&root)?;
-    npm_init(&root.child("web"))?;
-
-    // Both projects are discovered:
-    let root_path = Utf8Path::from_path(root.path()).unwrap();
-    let projects: Vec<Project> = projects_below(
-        root_path,
-        &noop_project_filter(),
-        &BuildToolManager::default(),
-    )
-    .collect();
-    assert_eq!(projects.len(), 2);
-    assert_eq!(projects[0].path, root_path);
-    assert_eq!(projects[0].build_tools.len(), 1);
-    assert_eq!(projects[0].build_tools[0].to_string(), "Cargo");
-    assert_eq!(projects[1].path, root_path.join("web"));
-    assert_eq!(projects[1].build_tools.len(), 1);
-    assert_eq!(projects[1].build_tools[0].to_string(), "NPM");
-
-    Ok(())
-}
