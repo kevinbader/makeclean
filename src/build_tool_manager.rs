@@ -3,7 +3,7 @@ use tracing::debug;
 
 use crate::{
     build_tools::{BuildTool, BuildToolProbe},
-    cargo, npm,
+    cargo, elm, npm,
 };
 
 pub struct BuildToolManager {
@@ -17,10 +17,10 @@ impl Default for BuildToolManager {
         };
 
         cargo::register(&mut build_tool_manager);
+        elm::register(&mut build_tool_manager);
         npm::register(&mut build_tool_manager);
 
         // TODO: Activate those as soon as the tests are there:
-        // elm::register(&mut build_tool_manager);
         // gradle::register(&mut build_tool_manager);
         // maven::register(&mut build_tool_manager);
         // mix::register(&mut build_tool_manager);

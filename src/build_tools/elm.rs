@@ -35,6 +35,17 @@ pub(crate) struct Elm {
 }
 
 impl BuildTool for Elm {
+    fn status(&self) -> anyhow::Result<BuildStatus> {
+        let build_and_deps_dir = self.path.join("elm-stuff");
+        let status = if build_and_deps_dir.exists() {
+            let freeable_bytes = dir_size(build_and_deps_dir.as_ref());
+            BuildStatus::Built { freeable_bytes }
+        } else {
+            BuildStatus::Clean
+        };
+        Ok(status)
+    }
+
     fn clean_project(&mut self, dry_run: bool) -> anyhow::Result<()> {
         let build_and_deps_dir = self.path.join("elm-stuff");
         if build_and_deps_dir.exists() {
@@ -47,17 +58,6 @@ impl BuildTool for Elm {
         }
 
         Ok(())
-    }
-
-    fn status(&self) -> anyhow::Result<BuildStatus> {
-        let build_and_deps_dir = self.path.join("elm-stuff");
-        let status = if build_and_deps_dir.exists() {
-            let freeable_bytes = dir_size(build_and_deps_dir.as_ref());
-            BuildStatus::Built { freeable_bytes }
-        } else {
-            BuildStatus::Clean
-        };
-        Ok(status)
     }
 }
 

@@ -1,4 +1,5 @@
 pub mod cargo;
+pub mod elm;
 pub mod git;
 pub mod npm;
 
