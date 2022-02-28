@@ -90,6 +90,15 @@ If you also want to archive the projects after cleaning them up, pass `--archive
 makeclean --archive ~/projects/foo
 ```
 
+> Note that while `--archive` also considers cleaned projects, it still respects `--min-age`. If makeclean doesn't find your project but you think it should, try again with the environment variable `RUST_LOG` set to `trace`, e.g., `RUST_LOG=trace makeclean --archive ~/projects/foo`. You should see a hint as to why the project was not considered. If the logs don't tell you what's going on, please consider creating a GitHub issue.
+
+To restore the project, use `tar` (which is probably already installed on your system):
+
+```bash
+cd ~/projects/foo
+tar -xaf foo.tar.xz && rm foo.tar.xz
+```
+
 ### Use case: automatically run for multiple project directories
 
 Let's say you have a list of directories where you know you'll create a lot of one-off projects you don't need to keep around in a ready state. You can use the following command to automically process them:
@@ -115,9 +124,8 @@ Check out the documentation on crates.io.
 ## TODO
 
 - [X] tests!
-- [ ] optionally tar source code folders after removing the build dirs
+- [X] optionally tar source code folders after removing the build dirs
 - [ ] use the build tool's clean feature instead of manually removing directories; e.g. npm clean, cargo clean, mix clean, ... (maybe even check whether there's a Makefile with a clean target)
 - [ ] CLI options:
   - [X] root directory
   - [X] min age
-  - [ ] min size

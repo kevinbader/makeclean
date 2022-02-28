@@ -28,14 +28,6 @@ pub struct Project {
     pub vcs: Option<VersionControlSystem>,
     /// When this project was last modified (most recent commit timestamp).
     pub mtime: DateTime<Utc>,
-    // /// True if the working copy is not clean, i.e., has uncommitted changes.
-    // pub is_dirty: bool,
-    // TODO:
-    // - last touched
-    // - LoC
-    // - size on disk
-    // - dependencies (present, size)
-    // - build artefacts (present, size)    }
 }
 
 impl Project {
@@ -76,9 +68,10 @@ impl Project {
 
         if Utc::now().signed_duration_since(mtime) < project_filter.min_age {
             trace!(
-                "Project skipped due to recent ({:?}) mtime: {}",
-                project_filter.min_age,
-                path
+                ?path,
+                %mtime,
+                min_age=%project_filter.min_age,
+                "Project skipped due to recent mtime",
             );
             return None;
         }

@@ -52,7 +52,11 @@ pub fn list(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()
 pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()> {
     let project_filter = {
         let min_age = cli.min_age.unwrap_or_else(|| Duration::days(30));
-        let status = ProjectStatus::ExceptClean;
+        let status = if cli.archive {
+            ProjectStatus::Any
+        } else {
+            ProjectStatus::ExceptClean
+        };
         ProjectFilter { min_age, status }
     };
 
@@ -60,6 +64,11 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
     for project in projects_below(&cli.directory, &project_filter, &build_tool_manager) {
         print_project(&project, cli.json)?;
         projects.push(project);
+    }
+
+    if projects.is_empty() {
+        println!("No projects found.");
+        return Ok(());
     }
 
     println!();
