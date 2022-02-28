@@ -12,10 +12,10 @@ where
     match Command::new("cargo")
         .args(["init", "--name", "cargo_test_project", "--vcs", "none", "."])
         .current_dir(parent.as_ref())
-        .status()
+        .output()
     {
-        Ok(status) if status.success() => Ok(()),
-        Ok(status) => bail!("unexpected exit code {:?}", status.code()),
+        Ok(output) if output.status.success() => Ok(()),
+        Ok(output) => bail!("cargo init failed: {:?}", output),
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
             warn!("failed to exec cargo: {}", e);
             // not installed on this system.. let's fake it then

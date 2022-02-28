@@ -1,7 +1,6 @@
 pub mod cargo;
 pub mod git;
 pub mod npm;
-pub mod project_filter;
 
 // pub fn elm_init<T>(parent: &T) -> Result<()>
 // where
