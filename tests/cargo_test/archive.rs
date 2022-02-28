@@ -61,15 +61,6 @@ fn archive_cleans_then_packs_includes_hidden_files_then_removes_project_files() 
     let mut archive = tar::Archive::new(tar);
     archive.unpack(extract_root.path()).unwrap();
 
-    // let zip_file = OpenOptions::new()
-    //     .read(true)
-    //     .open(project_dir.join(fname))
-    //     .unwrap();
-    // let mut zip = ZipArchive::new(zip_file).unwrap();
-    // // Let's use a new temporary directory for this..
-    // let extract_root = TempDir::new()?;
-    // zip.extract(&extract_root).unwrap();
-
     // Cargo.toml was extracted:
     assert!(extract_root.child("Cargo.toml").exists());
     // The `target` dir doesn't:
