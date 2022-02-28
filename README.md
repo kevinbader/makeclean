@@ -2,33 +2,17 @@
 
 Removes generated and downloaded files from code projects to free up space.
 
-What does this do? Its main features:
-
-- find projects
-  - ignore projects in dependency and build directories
-  - ignore projects that are ignored by version control
-  - => finds all directories not ignored by VCS and checks them for projects
-- clean projects
-  - run the build tool's "clean" command
-  - OR: delete the dependency and build directories
-- archive projects (BONUS)
-  - after cleaning, archive the project, create checksum file
-- provide an interactive CLI mode
-
-- [`makeclean`](#makeclean)
-  - [Prerequisites](#prerequisites)
-  - [Usage](#usage)
-    - [List projects](#list-projects)
-    - [Clean projects](#clean-projects)
-    - [Clean + archive projects](#clean--archive-projects)
-    - [Use case: automatically run for multiple project directories](#use-case-automatically-run-for-multiple-project-directories)
-  - [Limitations](#limitations)
-  - [Hack it](#hack-it)
-  - [TODO](#todo)
+- [Prerequisites](#prerequisites)
+- [Usage](#usage)
+  - [List projects](#list-projects)
+  - [Clean projects](#clean-projects)
+  - [Clean + archive projects](#clean--archive-projects)
+  - [Use case: automatically run for multiple project directories](#use-case-automatically-run-for-multiple-project-directories)
+- [Limitations](#limitations)
+- [Hack it](#hack-it)
+- [License](#license)
 
 ## Prerequisites
-
-- Git
 
 `makeclean` should work on Linux, MacOS and Windows. Only tested on Linux and Mac though.
 
@@ -38,19 +22,19 @@ What does this do? Its main features:
 
 ### List projects
 
-List all projects under a given path using `--list`/`-l`:
+List all projects that have not recently changed under a given path using `--list`/`-l`:
 
 ```bash
 makeclean --list ~/projects
 ```
 
-List all projects under a given path that have not changed in the last month using `--min-age`/`-m`:
+Modify what "recently" means using `--min-age`/`-m`; e.g., not modified within the last 2 weeks:
 
 ```bash
-makeclean --list --min-age=1m ~/projects
+makeclean --list --min-age=2w ~/projects
 ```
 
-Set it to zero to disable the check:
+Set `--min-age` to zero to disable the check:
 
 ```bash
 makeclean --list --min-age=0 ~/projects
@@ -119,13 +103,8 @@ $ xargs -0 -n 1 makeclean --min-age=7d --yes < <(tr \\n \\0 <playground.txt)
 
 ## Hack it
 
-Check out the documentation on crates.io.
+Check out the documentation on crates.io. PRs welcome!
 
-## TODO
+## License
 
-- [X] tests!
-- [X] optionally tar source code folders after removing the build dirs
-- [ ] use the build tool's clean feature instead of manually removing directories; e.g. npm clean, cargo clean, mix clean, ... (maybe even check whether there's a Makefile with a clean target)
-- [ ] CLI options:
-  - [X] root directory
-  - [X] min age
+MIT. Any contributions are assumed MIT-licensed as well.
