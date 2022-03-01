@@ -2,7 +2,7 @@ use std::{fs, io::Write, path::Path};
 
 use anyhow::Result;
 use assert_fs::fixture::PathChild;
-use git2::{Commit, Index, IndexAddOption, Repository};
+use git2::{Commit, Index, IndexAddOption, Repository, Signature};
 
 /// Initializes a Git repository at the given location.
 ///
@@ -48,7 +48,7 @@ fn git_commit(repo: &Repository, index: &mut Index, message: &str) -> Result<()>
     let tree_oid = index.write_tree()?;
     let tree = repo.find_tree(tree_oid)?;
 
-    let signature = repo.signature()?;
+    let signature = Signature::now("makeclean-test", "makeclean-test@example.com")?;
     let author = &signature;
     let committer = &signature;
 
