@@ -9,7 +9,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  publish_to_crates_io:
+  crates_io:
+    name: "Publish to crates.io"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -18,7 +19,7 @@ jobs:
           crate_version=$(grep version Cargo.toml | head -n1 | cut -d'"' -f2)
           echo "crate version: $crate_version"
           echo "ref: $GITHUB_REF"
-          exit [[ "$crate_version" = "${GITHUB_REF#refs/tags/v}" ]]
+          [[ "$crate_version" = "${GITHUB_REF#refs/tags/v}" ]] || exit 1
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
