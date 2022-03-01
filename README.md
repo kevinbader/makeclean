@@ -1,5 +1,8 @@
 # `makeclean`
 
+[![Crates.io](https://img.shields.io/crates/v/makeclean?style=flat-square)](https://crates.io/crates/makeclean)
+[![docs.rs](https://img.shields.io/docsrs/makeclean?style=flat-square)](https://docs.rs/makeclean/)
+
 Removes generated and downloaded files from code projects to free up space.
 
 - [Prerequisites](#prerequisites)
