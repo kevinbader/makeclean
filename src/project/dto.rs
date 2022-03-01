@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{find::vcs::VersionControlSystem, Project};
+use crate::{vcs::VersionControlSystem, Project};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProjectDto {

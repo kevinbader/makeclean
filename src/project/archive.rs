@@ -6,9 +6,7 @@ use std::{
     path::Path,
 };
 
-
 use xz::write::XzEncoder;
-
 
 use crate::{fs::canonicalized, Project};
 

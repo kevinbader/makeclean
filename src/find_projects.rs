@@ -1,5 +1,3 @@
-pub mod vcs;
-
 use crate::{
     build_tool_manager::BuildToolManager, fs::canonicalized, project::ProjectFilter,
     vcs::VersionControlSystem, Project,

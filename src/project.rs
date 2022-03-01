@@ -1,10 +1,11 @@
 mod archive;
+mod clean;
 pub mod dto;
+mod mtime;
 
 use crate::{
     build_tool_manager::BuildToolManager,
     build_tools::{BuildStatus, BuildTool},
-    mtime::dir_mtime,
     vcs::VersionControlSystem,
 };
 use anyhow::format_err;
@@ -12,6 +13,8 @@ use camino::{Utf8Path, Utf8PathBuf};
 use chrono::{DateTime, Duration, Local, Utc};
 use std::fmt;
 use tracing::{trace, warn};
+
+use self::mtime::dir_mtime;
 
 #[derive(Debug)]
 pub struct Project {
@@ -83,15 +86,6 @@ impl Project {
             vcs,
             mtime,
         })
-    }
-
-    pub fn clean(&mut self, dry_run: bool) -> anyhow::Result<()> {
-        trace!(?self.path, "cleaning project");
-        assert!(!self.build_tools.is_empty());
-        for build_tool in self.build_tools.iter_mut() {
-            build_tool.clean_project(dry_run)?;
-        }
-        Ok(())
     }
 }
 

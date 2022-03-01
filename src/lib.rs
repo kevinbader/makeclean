@@ -1,10 +1,10 @@
 mod build_tool_manager;
 mod build_tools;
 mod cli;
-mod find;
+mod find_projects;
 mod fs;
-mod mtime;
 mod project;
+mod vcs;
 
 use anyhow::Context;
 use chrono::Duration;
@@ -23,7 +23,7 @@ pub use crate::{
     project::dto::ProjectDto,
 };
 use crate::{
-    find::{projects_below, vcs},
+    find_projects::projects_below,
     project::{Project, ProjectFilter, ProjectStatus},
 };
 
