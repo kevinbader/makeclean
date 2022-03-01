@@ -21,7 +21,7 @@ Removes generated and downloaded files from code projects to free up space.
 
 ## Usage
 
-> Run `makeclean --help` to see all available options.
+Run `makeclean --help` to see all available options.
 
 ### List projects
 
@@ -77,7 +77,7 @@ If you also want to archive the projects after cleaning them up, pass `--archive
 makeclean --archive ~/projects/foo
 ```
 
-> Note that while `--archive` also considers cleaned projects, it still respects `--min-stale`. If makeclean doesn't find your project but you think it should, try again with the environment variable `RUST_LOG` set to `trace`, e.g., `RUST_LOG=trace makeclean --archive ~/projects/foo`. You should see a hint as to why the project was not considered. If the logs don't tell you what's going on, please consider creating a GitHub issue.
+> Note that while `--archive` also considers cleaned projects, it still respects `--min-stale`. If makeclean doesn't find your project but you think it should, try again with the environment variable `RUST_LOG` set to `trace`, e.g., `RUST_LOG=trace makeclean --archive ~/projects/foo`. You should see a hint as to why the project was not considered. If the logs don't tell you what's going on, please consider [creating a GitHub issue](https://github.com/kevinbader/makeclean/issues/new).
 
 To restore the project, use `tar` (which is probably already installed on your system):
 
