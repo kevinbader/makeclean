@@ -16,7 +16,7 @@ Currently supports the following build tools:
 
 Table of contents:
 
-- [Prerequisites](#prerequisites)
+- [Installation](#installation)
 - [Usage](#usage)
   - [List projects](#list-projects)
   - [Clean projects](#clean-projects)
@@ -26,9 +26,15 @@ Table of contents:
 - [Hack it](#hack-it)
 - [License](#license)
 
-## Prerequisites
+## Installation
 
 `makeclean` should work on Linux, MacOS and Windows. Only tested on Linux and Mac though.
+
+Install using [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html):
+
+```bash
+cargo install makeclean
+```
 
 ## Usage
 
