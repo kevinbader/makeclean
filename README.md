@@ -5,6 +5,17 @@
 
 Removes generated and downloaded files from code projects to free up space.
 
+Currently supports the following build tools:
+
+- [X] Cargo
+- [X] Elm
+- [ ] Gradle
+- [ ] Maven
+- [ ] Mix
+- [X] NPM
+
+Table of contents:
+
 - [Prerequisites](#prerequisites)
 - [Usage](#usage)
   - [List projects](#list-projects)
