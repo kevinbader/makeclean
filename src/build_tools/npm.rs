@@ -39,7 +39,6 @@ impl BuildTool for Npm {
         let deps_dir = self.path.join("node_modules");
         if deps_dir.exists() {
             assert!(deps_dir.is_dir());
-            assert!(deps_dir.join(".package-lock.json").is_file());
             if dry_run {
                 println!("{}: rm -r {deps_dir}", self.path);
             } else {
