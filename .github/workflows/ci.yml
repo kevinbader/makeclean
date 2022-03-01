@@ -20,7 +20,7 @@ jobs:
         with:
           toolchain: stable
           profile: minimal
-          components: clippy rustfmt
+          components: rustfmt, clippy
           override: true
       - uses: actions-rs/cargo@v1
         with:
