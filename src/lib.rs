@@ -36,9 +36,9 @@ pub use crate::project::dto::ProjectDto;
 
 pub fn list(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()> {
     let project_filter = {
-        let min_age = cli.min_age.unwrap_or_else(Duration::zero);
+        let min_stale = cli.min_stale.unwrap_or_else(Duration::zero);
         let status = ProjectStatus::Any;
-        ProjectFilter { min_age, status }
+        ProjectFilter { min_stale, status }
     };
     debug!("listing projects with {project_filter:?}");
 
@@ -51,13 +51,13 @@ pub fn list(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()
 
 pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()> {
     let project_filter = {
-        let min_age = cli.min_age.unwrap_or_else(|| Duration::days(30));
+        let min_stale = cli.min_stale.unwrap_or_else(|| Duration::days(30));
         let status = if cli.archive {
             ProjectStatus::Any
         } else {
             ProjectStatus::ExceptClean
         };
-        ProjectFilter { min_age, status }
+        ProjectFilter { min_stale, status }
     };
 
     let mut projects = vec![];

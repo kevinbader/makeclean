@@ -26,7 +26,7 @@ fn archive_cleans_then_packs_includes_hidden_files_then_removes_project_files() 
     assert!(target_dir.path().exists());
 
     let output = Command::cargo_bin("makeclean")?
-        .args(["--archive", "--min-age", "0", "--type", "cargo", "--yes"])
+        .args(["--archive", "--min-stale", "0", "--type", "cargo", "--yes"])
         .current_dir(&root)
         .output()?;
 

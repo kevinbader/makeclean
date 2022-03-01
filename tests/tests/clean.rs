@@ -25,7 +25,7 @@ fn the_prompt_only_lists_projects_that_need_cleaning() -> Result<()> {
     // Only the built project is listed:
 
     let output = Command::cargo_bin("makeclean")?
-        .args(["--dry-run", "--min-age", "0", "--json"])
+        .args(["--dry-run", "--min-stale", "0", "--json"])
         .current_dir(&root)
         .output()?;
     dbg!(String::from_utf8(output.stderr)?);
@@ -39,8 +39,8 @@ fn the_prompt_only_lists_projects_that_need_cleaning() -> Result<()> {
 }
 
 #[test]
-fn doesnt_consider_new_project_with_default_min_age_setting() -> Result<()> {
-    // Note that `--list` has a different default (--min-age=0)!
+fn doesnt_consider_new_project_with_default_min_stale_setting() -> Result<()> {
+    // Note that `--list` has a different default (--min-stale=0)!
 
     let root = TempDir::new()?;
     let project_dir = root.child("project");
@@ -73,7 +73,7 @@ fn cleaning_a_built_project_removes_target_dir() -> Result<()> {
     assert!(target_dir.path().exists());
 
     let output = Command::cargo_bin("makeclean")?
-        .args(["--min-age", "0", "--type", "cargo", "--yes"])
+        .args(["--min-stale", "0", "--type", "cargo", "--yes"])
         .current_dir(&root)
         .output()?;
 
@@ -98,7 +98,7 @@ fn cleaning_with_yes_and_dry_run_is_a_dry_run() -> Result<()> {
     assert!(target_dir.path().exists());
 
     let output = Command::cargo_bin("makeclean")?
-        .args(["--min-age", "0", "--type", "cargo", "--yes", "--dry-run"])
+        .args(["--min-stale", "0", "--type", "cargo", "--yes", "--dry-run"])
         .current_dir(&root)
         .output()?;
 
@@ -122,7 +122,7 @@ fn cleaning_a_cleaned_project_is_a_noop() -> Result<()> {
     assert!(!target_dir.path().exists());
 
     let output = Command::cargo_bin("makeclean")?
-        .args(["--min-age", "0", "--type", "cargo", "--yes"])
+        .args(["--min-stale", "0", "--type", "cargo", "--yes"])
         .current_dir(&root)
         .output()?;
 

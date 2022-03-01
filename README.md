@@ -22,22 +22,22 @@ Removes generated and downloaded files from code projects to free up space.
 
 ### List projects
 
-List all projects that have not recently changed under a given path using `--list`/`-l`:
+List all projects that are "stale", that is, have not been changed recently, under a given path, using `--list`/`-l`:
 
 ```bash
 makeclean --list ~/projects
 ```
 
-Modify what "recently" means using `--min-age`/`-m`; e.g., not modified within the last 2 weeks:
+By default, a project is considered stale if there weren't any changed for at least a month. You can change this by using `--min-stale`/`-m`; for example, to consider all projects that have not been modified within the last 2 weeks:
 
 ```bash
-makeclean --list --min-age=2w ~/projects
+makeclean --list --min-stale=2w ~/projects
 ```
 
-Set `--min-age` to zero to disable the check:
+Set `--min-stale` to zero to disable the check:
 
 ```bash
-makeclean --list --min-age=0 ~/projects
+makeclean --list --min-stale=0 ~/projects
 ```
 
 You can also filter by build tool using `--type`/`-t`:
@@ -74,7 +74,7 @@ If you also want to archive the projects after cleaning them up, pass `--archive
 makeclean --archive ~/projects/foo
 ```
 
-> Note that while `--archive` also considers cleaned projects, it still respects `--min-age`. If makeclean doesn't find your project but you think it should, try again with the environment variable `RUST_LOG` set to `trace`, e.g., `RUST_LOG=trace makeclean --archive ~/projects/foo`. You should see a hint as to why the project was not considered. If the logs don't tell you what's going on, please consider creating a GitHub issue.
+> Note that while `--archive` also considers cleaned projects, it still respects `--min-stale`. If makeclean doesn't find your project but you think it should, try again with the environment variable `RUST_LOG` set to `trace`, e.g., `RUST_LOG=trace makeclean --archive ~/projects/foo`. You should see a hint as to why the project was not considered. If the logs don't tell you what's going on, please consider creating a GitHub issue.
 
 To restore the project, use `tar` (which is probably already installed on your system):
 
@@ -94,7 +94,7 @@ $ cat playground.txt
 ~/code/flutter-playground
 
 $ # Replacing newlines with zero-bytes is needed to process whitespace correctly without fiddling around with IFS...
-$ xargs -0 -n 1 makeclean --min-age=7d --yes < <(tr \\n \\0 <playground.txt)
+$ xargs -0 -n 1 makeclean --min-stale=7d --yes < <(tr \\n \\0 <playground.txt)
 ```
 
 ## Limitations

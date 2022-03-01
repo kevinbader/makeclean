@@ -7,8 +7,6 @@ use chrono::Duration;
 use clap::Parser;
 use regex::Regex;
 
-use crate::{project::ProjectStatus, ProjectFilter};
-
 /// Removes generated and downloaded files from code projects to free up space.
 ///
 /// Only supports Git-controlled projects (other projects are ignored).
@@ -24,12 +22,16 @@ pub struct Cli {
 
     /// Projects that were modified more recently than this are ignored.
     /// Examples: 1d = a day, 2w = two weeks, 1m = a month, 1y = a year.
-    #[clap(short, long, parse(try_from_str=parse_duration), global(true))]
-    pub min_age: Option<Duration>,
+    #[clap(value_name(r"DURATION"), short, long, parse(try_from_str=parse_duration))]
+    pub min_stale: Option<Duration>,
 
     /// Only consider projects that use the given build tool.
     /// Use more than once for multiple project types.
     /// By default, all known project types are considered.
+    ///
+    /// For example, to consider Cargo and NPM projects:
+    ///
+    /// makeclean -t cargo -t npm
     #[clap(short = 't', long = "type")]
     pub types: Vec<String>,
 
@@ -42,11 +44,17 @@ pub struct Cli {
     pub yes: bool,
 
     /// Additionally compress cleaned projects.
+    ///
+    /// After cleaning a project, its contents are moved into a tar.xz file. To
+    /// restore the project, use `tar` (which is probably already installed on
+    /// your system):
+    ///
+    /// cd path/to/project && tar -xaf project-name.tar.xz && rm project-name.tar.xz
     #[clap(short = 'z', long)]
     pub archive: bool,
 
     /// Recursively searches for project in this directory
-    #[clap(default_value = ".", global(true))]
+    #[clap(default_value = ".")]
     pub directory: Utf8PathBuf,
 }
 
@@ -74,26 +82,4 @@ fn parse_duration(s: &str) -> anyhow::Result<Duration> {
         _ => unreachable!("the regex should make sure of that"),
     };
     Ok(duration)
-}
-
-impl From<&Cli> for ProjectFilter {
-    fn from(cli: &Cli) -> Self {
-        // --min-age has a different default, depending on whether we just list
-        // projects or we actually want to clean them.
-        let min_age = cli.min_age.unwrap_or_else(|| {
-            if cli.list {
-                Duration::zero()
-            } else {
-                Duration::days(30)
-            }
-        });
-
-        let status = if cli.list {
-            ProjectStatus::Any
-        } else {
-            ProjectStatus::ExceptClean
-        };
-
-        ProjectFilter { min_age, status }
-    }
 }

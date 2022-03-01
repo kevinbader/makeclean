@@ -139,13 +139,13 @@ fn doesnt_find_project_with_different_project_type_filter() -> Result<()> {
 }
 
 #[test]
-fn doesnt_find_new_project_with_min_age_set() -> Result<()> {
+fn doesnt_find_new_project_with_min_stale_set() -> Result<()> {
     let root = TempDir::new()?;
     let project_dir = root.child("project");
     cargo_init(&project_dir)?;
 
     let output = Command::cargo_bin("makeclean")?
-        .args(["--list", "--min-age", "1d"])
+        .args(["--list", "--min-stale", "1d"])
         .current_dir(&root)
         .output()?;
     dbg!(String::from_utf8(output.stderr)?);
@@ -161,7 +161,7 @@ fn doesnt_find_new_project_with_min_age_set() -> Result<()> {
 }
 
 #[test]
-fn finds_projects_according_to_min_age() -> Result<()> {
+fn finds_projects_according_to_min_stale() -> Result<()> {
     let root = TempDir::new()?;
     let project_dir = root.child("project");
     cargo_init(&project_dir)?;
@@ -175,10 +175,10 @@ fn finds_projects_according_to_min_age() -> Result<()> {
         .filter_map(|entry| entry.ok())
         .for_each(|entry| set_mtime(entry.path(), mtime.into()).unwrap());
 
-    // We don't find the project with --min-age=4m
+    // We don't find the project with --min-stale=4m
 
     let output = Command::cargo_bin("makeclean")?
-        .args(["--list", "--json", "--min-age", "4m"])
+        .args(["--list", "--json", "--min-stale", "4m"])
         .current_dir(&root)
         .output()?;
     dbg!(String::from_utf8(output.stderr)?);
@@ -190,10 +190,10 @@ fn finds_projects_according_to_min_age() -> Result<()> {
         "Expected no output, got: {output:?}"
     );
 
-    // However, we find the project with --min-age=2m
+    // However, we find the project with --min-stale=2m
 
     let output = Command::cargo_bin("makeclean")?
-        .args(["--list", "--json", "--min-age", "2m"])
+        .args(["--list", "--json", "--min-stale", "2m"])
         .current_dir(&root)
         .output()?;
     dbg!(String::from_utf8(output.stderr)?);

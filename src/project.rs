@@ -66,11 +66,11 @@ impl Project {
         let mtime: DateTime<Local> = mtime.into();
         let mtime: DateTime<Utc> = mtime.into();
 
-        if Utc::now().signed_duration_since(mtime) < project_filter.min_age {
+        if Utc::now().signed_duration_since(mtime) < project_filter.min_stale {
             trace!(
                 ?path,
                 %mtime,
-                min_age=%project_filter.min_age,
+                min_stale=%project_filter.min_stale,
                 "Project skipped due to recent mtime",
             );
             return None;
@@ -136,14 +136,14 @@ impl fmt::Display for Project {
 
 #[derive(Debug)]
 pub struct ProjectFilter {
-    pub min_age: Duration,
+    pub min_stale: Duration,
     pub status: ProjectStatus,
 }
 
 impl Default for ProjectFilter {
     fn default() -> Self {
         Self {
-            min_age: Duration::days(0),
+            min_stale: Duration::days(0),
             status: ProjectStatus::ExceptClean,
         }
     }
