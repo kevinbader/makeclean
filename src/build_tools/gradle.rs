@@ -1,5 +1,6 @@
+use crate::build_tool_manager::BuildToolManager;
+
 use super::{BuildTool, BuildToolProbe};
-use crate::BuildToolManager;
 use anyhow::{bail, Context};
 use camino::{Utf8Path, Utf8PathBuf};
 use std::process::Command;

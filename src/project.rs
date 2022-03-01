@@ -2,10 +2,10 @@ mod archive;
 pub mod dto;
 
 use crate::{
+    build_tool_manager::BuildToolManager,
     build_tools::{BuildStatus, BuildTool},
     mtime::dir_mtime,
     vcs::VersionControlSystem,
-    BuildToolManager,
 };
 use anyhow::format_err;
 use camino::{Utf8Path, Utf8PathBuf};

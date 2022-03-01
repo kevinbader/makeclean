@@ -6,33 +6,26 @@ mod fs;
 mod mtime;
 mod project;
 
-use std::io;
-
 use anyhow::Context;
-pub use build_tool_manager::BuildToolManager;
-pub use build_tools::cargo;
-pub use build_tools::elm;
-pub use build_tools::gradle;
-pub use build_tools::maven;
-pub use build_tools::mix;
-pub use build_tools::npm;
-pub use cli::Cli;
-use console::style;
-use console::Term;
-use dialoguer::theme::ColorfulTheme;
-use dialoguer::theme::SimpleTheme;
-use dialoguer::theme::Theme;
-use dialoguer::Confirm;
-pub use find::projects_below;
-use find::vcs;
-pub use project::Project;
-pub use project::ProjectFilter;
-pub use project::ProjectStatus;
-
 use chrono::Duration;
+use console::{style, Term};
+use dialoguer::{
+    theme::{ColorfulTheme, SimpleTheme, Theme},
+    Confirm,
+};
+use std::io;
 use tracing::debug;
 
-pub use crate::project::dto::ProjectDto;
+pub use crate::{
+    build_tool_manager::BuildToolManager,
+    build_tools::{cargo, elm, gradle, maven, mix, npm},
+    cli::Cli,
+    project::dto::ProjectDto,
+};
+use crate::{
+    find::{projects_below, vcs},
+    project::{Project, ProjectFilter, ProjectStatus},
+};
 
 pub fn list(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()> {
     let project_filter = {

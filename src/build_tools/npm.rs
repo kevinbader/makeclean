@@ -1,5 +1,5 @@
 use super::{BuildStatus, BuildTool, BuildToolProbe};
-use crate::{fs::dir_size, BuildToolManager};
+use crate::{build_tool_manager::BuildToolManager, fs::dir_size};
 use camino::{Utf8Path, Utf8PathBuf};
 use std::fs;
 

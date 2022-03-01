@@ -1,7 +1,8 @@
 pub mod vcs;
 
 use crate::{
-    fs::canonicalized, project::ProjectFilter, vcs::VersionControlSystem, BuildToolManager, Project,
+    build_tool_manager::BuildToolManager, fs::canonicalized, project::ProjectFilter,
+    vcs::VersionControlSystem, Project,
 };
 use anyhow::Context;
 use camino::{Utf8Path, Utf8PathBuf};
