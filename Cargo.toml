@@ -2,7 +2,7 @@
 name = "makeclean"
 version = "0.1.0"
 edition = "2021"
-description = "Remove build artifacts for projects you're not working on."
+description = "Clean up projects you're no longer working on."
 authors = ["Kevin Bader <kevinbader@users.noreply.github.com>"]
 license = "MIT"
 repository = "https://github.com/kevinbader/makeclean"
