@@ -13,15 +13,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: check crate version matches tag
+        run: |
+          crate_version=$(grep version Cargo.toml | head -n1 | cut -d'"' -f2)
+          echo "crate version: $crate_version"
+          echo "ref: $GITHUB_REF"
+          exit [[ "$crate_version" = "${GITHUB_REF#refs/tags/v}" ]]
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           profile: minimal
           override: true
-      - uses: actions-rs/cargo@v1
+      - name: cargo test
+        uses: actions-rs/cargo@v1
         with:
           command: test
-      - uses: actions-rs/cargo@v1
+      - name: cargo publish
+        uses: actions-rs/cargo@v1
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         with:
           command: publish
           args: --dry-run
