@@ -9,7 +9,8 @@ mod vcs;
 use anyhow::Context;
 use build_tool_manager::BuildToolManager;
 use chrono::Duration;
-use console::{colors_enabled, style, Term};
+use clap::{CommandFactory, ErrorKind};
+use console::{colors_enabled, style};
 use dialoguer::{
     theme::{ColorfulTheme, SimpleTheme, Theme},
     Confirm,
@@ -67,6 +68,18 @@ pub fn list(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()
 ///
 /// Runs in interactive mode unless either one of `cli.dry_run` and `cli.yes` is true.
 pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()> {
+    // I couldn't figure out how to do this with Clap..
+    if cli.json && !cli.dry_run && !cli.yes {
+        // Would be interactive mode, which doesn't make sense with JSON - the
+        // prompt is not JSON formatted, after all.
+        let mut cmd = Cli::command();
+        cmd.error(
+            ErrorKind::ArgumentConflict,
+            "With `--json`, either `--dry-run` or `--yes` is required.",
+        )
+        .exit();
+    }
+
     let project_filter = {
         let min_stale = cli.min_stale.unwrap_or_else(|| Duration::days(30));
         let status = if cli.archive {
@@ -83,10 +96,9 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
         projects.push(project);
     }
 
-    if projects.is_empty() {
-        // TODO: Perhaps output "No projects found. Try running with RUST_LOG=trace to see why."
-        // This will fail tests, which currently expect no output besides projects. A `--quiet` switch should help.
-
+    if cli.json && cli.dry_run {
+        // If we'd continue, we'd fck up the JSON output, as the dry-run output
+        // is not formatted.
         return Ok(());
     }
 
@@ -99,47 +111,72 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
         })
         .sum::<u64>();
 
-    println!();
-    let do_continue = if cli.dry_run || cli.yes {
-        true
-    } else {
-        let theme = theme();
-        let prompt = format!("Clean up those projects ({})?", format_size(freeable_bytes));
-        Confirm::with_theme(&*theme)
-            .with_prompt(prompt)
-            .default(true)
-            .interact()?
-    };
+    let has_cleaned = {
+        if projects.is_empty() {
+            false
+        } else {
+            let do_continue = if cli.dry_run {
+                println!("\n{}", style("WOULD DO:").bold());
+                true
+            } else if cli.yes {
+                true
+            } else {
+                println!();
 
-    if do_continue {
-        for project in &mut projects {
-            project
-                .clean(cli.dry_run)
-                .with_context(|| format!("Failed to clean project {project}"))?;
+                let theme = theme();
+                let prompt = format!("Clean up those projects ({})?", format_size(freeable_bytes));
+                Confirm::with_theme(&*theme)
+                    .with_prompt(prompt)
+                    .default(true)
+                    .interact()?
+            };
 
-            if cli.archive {
-                project
-                    .archive(cli.dry_run)
-                    .with_context(|| format!("Failed to archive cleaned project {project}"))?;
+            if do_continue {
+                for project in &mut projects {
+                    project
+                        .clean(cli.dry_run)
+                        .with_context(|| format!("Failed to clean project {project}"))?;
+
+                    if cli.archive {
+                        project.archive(cli.dry_run).with_context(|| {
+                            format!("Failed to archive cleaned project {project}")
+                        })?;
+                    }
+                }
+
+                !cli.dry_run
+            } else {
+                println!("No changes made.");
+                false
             }
         }
-    } else {
-        println!("No changes made.")
-    }
+    };
 
-    if Term::stdout().features().is_attended() {
+    if !cli.json {
         println!();
         println!("{}", style("SUMMARY:").bold());
+        let projects_label = if projects.len() == 1 {
+            "project"
+        } else {
+            "projects"
+        };
         println!(
             "  {}",
-            style(format!(
-                "{} projects found, with {} of build artifacts and dependencies.",
-                projects.len(),
-                format_size(freeable_bytes)
-            ))
+            style(if has_cleaned {
+                format!(
+                    "{} {projects_label} cleaned, which freed approx. {} of build artifacts and dependencies.",
+                    projects.len(),
+                    format_size(freeable_bytes)
+                )
+            } else {
+                format!(
+                    "{} {projects_label} found, with {} of build artifacts and dependencies.",
+                    projects.len(),
+                    format_size(freeable_bytes)
+                )
+            })
             .green()
         );
-        // TODO print how many of those could be (OR HAVE BEEN) cleaned and how much space that would/was save/d.
         let n_projects_without_vcs = projects.iter().filter(|p| p.vcs.is_none()).count();
         if n_projects_without_vcs > 0 {
             println!(

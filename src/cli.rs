@@ -13,6 +13,8 @@ use regex::Regex;
 #[derive(Parser, Debug)]
 pub struct Cli {
     /// JSON output (default when stdout is piped)
+    ///
+    /// When present, either `--dry-run` or `--yes` is required.
     #[clap(long)]
     pub json: bool,
 
@@ -22,6 +24,8 @@ pub struct Cli {
 
     /// Projects that were modified more recently than this are ignored.
     /// Examples: 1d = a day, 2w = two weeks, 1m = a month, 1y = a year.
+    ///
+    /// With `--list`, this defaults to 0, otherwise to one month.
     #[clap(value_name(r"DURATION"), short, long, parse(try_from_str=parse_duration))]
     pub min_stale: Option<Duration>,
 
