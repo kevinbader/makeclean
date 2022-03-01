@@ -7,6 +7,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 use std::collections::VecDeque;
 use tracing::{debug, trace, warn};
 
+/// An iterator over [`Project`]s in and below a given directory.
 pub fn projects_below<'a>(
     path: &Utf8Path,
     project_filter: &'a ProjectFilter,

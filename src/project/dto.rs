@@ -1,3 +1,5 @@
+//! Representation of a [`Project`] used for JSON output.
+
 use serde::{Deserialize, Serialize};
 
 use crate::{vcs::VersionControlSystem, Project};

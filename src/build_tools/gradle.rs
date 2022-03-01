@@ -11,7 +11,7 @@ pub fn register(manager: &mut BuildToolManager) {
 }
 
 #[derive(Debug)]
-pub(crate) struct GradleProbe;
+pub struct GradleProbe;
 
 impl BuildToolProbe for GradleProbe {
     fn probe(&self, path: &Utf8Path) -> Option<Box<dyn BuildTool>> {
@@ -32,7 +32,7 @@ impl BuildToolProbe for GradleProbe {
 }
 
 #[derive(Debug)]
-pub(crate) struct Gradle {
+pub struct Gradle {
     path: Utf8PathBuf,
 }
 

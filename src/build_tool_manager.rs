@@ -1,10 +1,9 @@
+//! Manages build-tool probes that are used to recognize projects.
+
 use camino::Utf8Path;
 use tracing::debug;
 
-use crate::{
-    build_tools::{BuildTool, BuildToolProbe},
-    cargo, elm, npm,
-};
+use crate::build_tools::{cargo, elm, npm, BuildTool, BuildToolProbe};
 
 pub struct BuildToolManager {
     probes: Vec<Box<dyn BuildToolProbe>>,
@@ -30,10 +29,18 @@ impl Default for BuildToolManager {
 }
 
 impl BuildToolManager {
+    /// Add a build-tool probe.
+    ///
+    /// Not idempotent - multiple calls will cause the probe to be invoked more
+    /// than once.
     pub fn register(&mut self, probe: Box<dyn BuildToolProbe>) {
         self.probes.push(probe);
     }
 
+    /// Filters the current list of probes.
+    ///
+    /// Any probes that are not related to any of the names given in
+    /// `project_types` are discarded.
     pub fn filter(&mut self, project_types: &[String]) {
         let mut probes = Vec::new();
         std::mem::swap(&mut self.probes, &mut probes);
@@ -51,6 +58,7 @@ impl BuildToolManager {
         debug!("build tools filtered: {:?}", &self.probes);
     }
 
+    /// Returns all build tools that apply to a given location.
     pub fn probe(&self, path: &Utf8Path) -> Vec<Box<dyn BuildTool>> {
         self.probes
             .iter()
@@ -61,7 +69,7 @@ impl BuildToolManager {
 
 #[cfg(test)]
 mod test {
-    use crate::{elm, gradle, maven, mix};
+    use crate::build_tools::{gradle, maven, mix};
 
     use super::*;
 

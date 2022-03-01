@@ -1,3 +1,5 @@
+//! Represents a software project.
+
 mod archive;
 mod clean;
 pub mod dto;
@@ -16,6 +18,7 @@ use tracing::{trace, warn};
 
 use self::mtime::dir_mtime;
 
+/// Main entity.
 #[derive(Debug)]
 pub struct Project {
     /// The name of project.
@@ -46,7 +49,7 @@ impl Project {
             return None;
         }
 
-        if let ProjectStatus::ExceptClean = project_filter.status {
+        if let StatusFilter::ExceptClean = project_filter.status {
             // Ignore this project if _all_ build tools report a clean state
             if build_tools
                 .iter()
@@ -128,23 +131,20 @@ impl fmt::Display for Project {
     }
 }
 
+/// Defines which projects to consider
 #[derive(Debug)]
 pub struct ProjectFilter {
+    /// Projects that were modified more recently than this are ignored.
     pub min_stale: Duration,
-    pub status: ProjectStatus,
+    /// Projects that don't satisfy the status filter are ignored
+    pub status: StatusFilter,
 }
 
-impl Default for ProjectFilter {
-    fn default() -> Self {
-        Self {
-            min_stale: Duration::days(0),
-            status: ProjectStatus::ExceptClean,
-        }
-    }
-}
-
+/// Filter by status reported by the [`Project`]'s build tools.
 #[derive(Debug)]
-pub enum ProjectStatus {
+pub enum StatusFilter {
+    /// Any project is considered
     Any,
+    /// All projects that are not already clean are considered
     ExceptClean,
 }

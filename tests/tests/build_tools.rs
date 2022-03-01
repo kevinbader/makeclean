@@ -8,7 +8,7 @@ use assert_fs::{
     fixture::{ChildPath, PathChild},
     TempDir,
 };
-use makeclean::ProjectDto;
+use makeclean::project::dto::ProjectDto;
 
 use crate::util::{cargo::cargo_init, elm::elm_init, npm::npm_init};
 

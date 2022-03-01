@@ -11,7 +11,7 @@ pub fn register(manager: &mut BuildToolManager) {
 }
 
 #[derive(Debug)]
-pub(crate) struct CargoProbe;
+pub struct CargoProbe;
 
 impl BuildToolProbe for CargoProbe {
     fn probe(&self, path: &Utf8Path) -> Option<Box<dyn BuildTool>> {
@@ -32,7 +32,7 @@ impl BuildToolProbe for CargoProbe {
 }
 
 #[derive(Debug)]
-pub(crate) struct Cargo {
+pub struct Cargo {
     path: Utf8PathBuf,
 }
 

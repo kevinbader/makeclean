@@ -1,36 +1,34 @@
-mod build_tool_manager;
-mod build_tools;
+pub mod build_tool_manager;
+pub mod build_tools;
 mod cli;
-mod find_projects;
+pub mod find_projects;
 mod fs;
-mod project;
+pub mod project;
 mod vcs;
 
 use anyhow::Context;
+use build_tool_manager::BuildToolManager;
 use chrono::Duration;
 use console::{style, Term};
 use dialoguer::{
     theme::{ColorfulTheme, SimpleTheme, Theme},
     Confirm,
 };
+use project::Project;
 use std::io;
 use tracing::debug;
 
-pub use crate::{
-    build_tool_manager::BuildToolManager,
-    build_tools::{cargo, elm, gradle, maven, mix, npm},
-    cli::Cli,
-    project::dto::ProjectDto,
-};
+pub use crate::cli::Cli;
 use crate::{
     find_projects::projects_below,
-    project::{Project, ProjectFilter, ProjectStatus},
+    project::{dto::ProjectDto, ProjectFilter, StatusFilter},
 };
 
+/// Implementation of `makeclean --list`
 pub fn list(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()> {
     let project_filter = {
         let min_stale = cli.min_stale.unwrap_or_else(Duration::zero);
-        let status = ProjectStatus::Any;
+        let status = StatusFilter::Any;
         ProjectFilter { min_stale, status }
     };
     debug!("listing projects with {project_filter:?}");
@@ -42,13 +40,16 @@ pub fn list(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()
     Ok(())
 }
 
+/// Removes generated and downloaded files from code projects to free up space.
+///
+/// Runs in interactive mode unless either one of `cli.dry_run` and `cli.yes` is true.
 pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()> {
     let project_filter = {
         let min_stale = cli.min_stale.unwrap_or_else(|| Duration::days(30));
         let status = if cli.archive {
-            ProjectStatus::Any
+            StatusFilter::Any
         } else {
-            ProjectStatus::ExceptClean
+            StatusFilter::ExceptClean
         };
         ProjectFilter { min_stale, status }
     };

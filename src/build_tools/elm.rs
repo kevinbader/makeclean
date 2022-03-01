@@ -9,7 +9,7 @@ pub fn register(manager: &mut BuildToolManager) {
 }
 
 #[derive(Debug)]
-pub(crate) struct ElmProbe;
+pub struct ElmProbe;
 
 impl BuildToolProbe for ElmProbe {
     fn probe(&self, path: &Utf8Path) -> Option<Box<dyn BuildTool>> {
@@ -30,7 +30,7 @@ impl BuildToolProbe for ElmProbe {
 }
 
 #[derive(Debug)]
-pub(crate) struct Elm {
+pub struct Elm {
     path: Utf8PathBuf,
 }
 

@@ -11,7 +11,7 @@ pub fn register(manager: &mut BuildToolManager) {
 }
 
 #[derive(Debug)]
-pub(crate) struct MavenProbe;
+pub struct MavenProbe;
 
 impl BuildToolProbe for MavenProbe {
     fn probe(&self, path: &Utf8Path) -> Option<Box<dyn BuildTool>> {
@@ -32,7 +32,7 @@ impl BuildToolProbe for MavenProbe {
 }
 
 #[derive(Debug)]
-pub(crate) struct Maven {
+pub struct Maven {
     path: Utf8PathBuf,
 }
 

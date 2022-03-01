@@ -1,3 +1,5 @@
+//! Utility functions for file system handling.
+
 use camino::Utf8PathBuf;
 use std::path::Path;
 use walkdir::WalkDir;

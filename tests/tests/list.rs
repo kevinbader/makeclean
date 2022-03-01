@@ -8,7 +8,7 @@ use anyhow::Result;
 use assert_cmd::prelude::CommandCargoExt;
 use assert_fs::{fixture::PathChild, TempDir};
 use fs_set_times::set_mtime;
-use makeclean::ProjectDto;
+use makeclean::project::dto::ProjectDto;
 use walkdir::WalkDir;
 
 use crate::util::{cargo::cargo_init, git::git_init, npm::npm_init};

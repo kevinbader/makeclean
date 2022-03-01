@@ -1,7 +1,7 @@
 use clap::StructOpt;
 use std::{env, panic};
 
-use makeclean::{BuildToolManager, Cli};
+use makeclean::{build_tool_manager::BuildToolManager, Cli};
 
 fn main() -> anyhow::Result<()> {
     setup_panic_hooks();
