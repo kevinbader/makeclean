@@ -75,7 +75,7 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
     let do_continue = if cli.dry_run || cli.yes {
         true
     } else {
-        let theme = theme();
+        let theme = theme(&term);
         Confirm::with_theme(&*theme)
             .with_prompt("Clean up those projects?")
             .default(true)
@@ -94,19 +94,22 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
                     .with_context(|| format!("Failed to archive cleaned project {project}"))?;
             }
         }
+    } else {
+        println!("No changes made.")
     }
 
     if Term::stdout().features().is_attended() {
         println!();
+        println!("{}", style("SUMMARY:").bold());
         println!(
-            "{}",
+            "  {}",
             style(format!("{} projects found.", projects.len())).green()
         );
         // TODO print how many of those could be (OR HAVE BEEN) cleaned and how much space that would/was save/d.
         let n_projects_without_vcs = projects.iter().filter(|p| p.vcs.is_none()).count();
         if n_projects_without_vcs > 0 {
             println!(
-                "{}",
+                "  {}",
                 style(format!(
                     "{} projects not under version control:",
                     n_projects_without_vcs
@@ -116,15 +119,15 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
             projects
                 .iter()
                 .filter(|p| p.vcs.is_none())
-                .for_each(|p| println!("  {}", style(p.path.as_str()).dim()));
+                .for_each(|p| println!("    {}", style(p.path.as_str()).dim()));
         }
     }
 
     Ok(())
 }
 
-fn theme() -> Box<dyn Theme> {
-    if Term::stdout().features().colors_supported() {
+fn theme(term: &Term) -> Box<dyn Theme> {
+    if use_color(term) {
         Box::new(ColorfulTheme::default())
     } else {
         Box::new(SimpleTheme {})
@@ -143,9 +146,13 @@ fn print_project(project: &Project, json: bool, term: &Term) -> anyhow::Result<(
     Ok(())
 }
 
+fn use_color(term: &Term) -> bool {
+    let features = term.features();
+    features.colors_supported() && features.is_attended()
+}
+
 fn pretty_print_project(project: &Project, term: &Term) -> anyhow::Result<()> {
-    let term_features = term.features();
-    let use_color = term_features.colors_supported() && term_features.is_attended();
+    let use_color = use_color(term);
 
     let tools = project
         .build_tools
