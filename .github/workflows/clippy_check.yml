@@ -2,8 +2,8 @@ name: Clippy check
 
 on:
   pull_request:
-    paths:
-      - '**.rs'
+    paths-ignore:
+      - '**.md'
 
 jobs:
   clippy_check:
