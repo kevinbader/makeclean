@@ -123,7 +123,7 @@ fn doesnt_find_project_with_different_project_type_filter() -> Result<()> {
     cargo_init(&project_dir)?;
 
     let output = Command::cargo_bin("makeclean")?
-        .args(["--list", "--type", "npm"])
+        .args(["--json", "--list", "--type", "npm"])
         .current_dir(&root)
         .output()?;
     dbg!(String::from_utf8(output.stderr)?);
@@ -145,7 +145,7 @@ fn doesnt_find_new_project_with_min_stale_set() -> Result<()> {
     cargo_init(&project_dir)?;
 
     let output = Command::cargo_bin("makeclean")?
-        .args(["--list", "--min-stale", "1d"])
+        .args(["--json", "--list", "--min-stale", "1d"])
         .current_dir(&root)
         .output()?;
     dbg!(String::from_utf8(output.stderr)?);

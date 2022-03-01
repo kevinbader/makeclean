@@ -47,7 +47,7 @@ fn doesnt_consider_new_project_with_default_min_stale_setting() -> Result<()> {
     cargo_init(&project_dir)?;
 
     let output = Command::cargo_bin("makeclean")?
-        .args(["--dry-run"])
+        .args(["--json", "--dry-run"])
         .current_dir(&root)
         .output()?;
     dbg!(String::from_utf8(output.stderr)?);
