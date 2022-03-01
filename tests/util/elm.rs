@@ -26,7 +26,7 @@ where
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
             warn!("failed to exec elm: {}", e);
             // not installed on this system.. let's fake it then
-            parent.child("package.json").touch()?;
+            parent.child("elm.json").touch()?;
             return Ok(());
         }
         Err(e) => return Err(e.into()),
