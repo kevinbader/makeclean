@@ -48,7 +48,7 @@ pub fn setup_logging() {
         std::env::set_var("RUST_BACKTRACE", "1")
     }
     if std::env::var("RUST_LOG").is_err() {
-        std::env::set_var("RUST_LOG", "info")
+        std::env::set_var("RUST_LOG", "error")
     }
 
     tracing_subscriber::fmt::init();

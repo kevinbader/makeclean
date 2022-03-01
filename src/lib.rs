@@ -33,9 +33,11 @@ pub fn list(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()
     };
     debug!("listing projects with {project_filter:?}");
 
+    let term = Term::stdout();
     for project in projects_below(&cli.directory, &project_filter, &build_tool_manager) {
-        print_project(&project, cli.json)?;
+        print_project(&project, cli.json, &term)?;
     }
+    term.flush()?;
 
     Ok(())
 }
@@ -54,11 +56,13 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
         ProjectFilter { min_stale, status }
     };
 
+    let term = Term::stdout();
     let mut projects = vec![];
     for project in projects_below(&cli.directory, &project_filter, &build_tool_manager) {
-        print_project(&project, cli.json)?;
+        print_project(&project, cli.json, &term)?;
         projects.push(project);
     }
+    term.flush()?;
 
     if projects.is_empty() {
         // TODO: Perhaps output "No projects found. Try running with RUST_LOG=trace to see why."
@@ -127,53 +131,57 @@ fn theme() -> Box<dyn Theme> {
     }
 }
 
-fn print_project(project: &Project, json: bool) -> anyhow::Result<()> {
+fn print_project(project: &Project, json: bool, term: &Term) -> anyhow::Result<()> {
     if json {
         let dto = ProjectDto::from(project);
         serde_json::to_writer(io::stdout(), &dto)?;
         // Add the newline:
         println!();
     } else {
-        println!("{project}");
+        pretty_print_project(project, term)?;
     }
     Ok(())
 }
 
-// fn format_project(project: &Project, term: &Term, _use_json: bool) -> String {
-//     let term_features = term.features();
-//     let use_color = term_features.colors_supported() && term_features.is_attended() && !paths_only;
-//
-//     let tools = project
-//         .build_tools
-//         .iter()
-//         .map(|x| x.to_string())
-//         .collect::<Vec<_>>()
-//         .join(", ");
-//     let vcs = project
-//         .vcs
-//         .as_ref()
-//         .map(|x| x.name())
-//         .unwrap_or_else(|| "no VCS");
-//
-//     let path = if use_color {
-//         if let Some(vcs_root) = project.vcs.as_ref().map(|vcs| vcs.root()) {
-//             // We'd expect the VCS root to be <= the project's own path.
-//             if let Ok(project_part) = project.path.strip_prefix(&vcs_root) {
-//                 format!("{}{}", vcs_root, style(format!("/{}", project_part)).dim())
-//             } else {
-//                 project.path.to_string()
-//             }
-//         } else {
-//             project.path.to_string()
-//         }
-//     } else {
-//         project.path.to_string()
-//     };
-//
-//     if use_color {
-//         let info = style(format!("({}; {})", tools, vcs)).dim();
-//         format!("{} {}", path, info)
-//     } else {
-//         format!("{} ({}; {})", path, tools, vcs)
-//     }
-// }
+fn pretty_print_project(project: &Project, term: &Term) -> anyhow::Result<()> {
+    let term_features = term.features();
+    let use_color = term_features.colors_supported() && term_features.is_attended();
+
+    let tools = project
+        .build_tools
+        .iter()
+        .map(|x| x.to_string())
+        .collect::<Vec<_>>()
+        .join(", ");
+    let vcs = project
+        .vcs
+        .as_ref()
+        .map(|x| x.name())
+        .unwrap_or_else(|| "no VCS");
+
+    let path = if use_color {
+        if let Some(vcs_root) = project.vcs.as_ref().map(|vcs| vcs.root()) {
+            // We'd expect the VCS root to be <= the project's own path.
+            if let Ok(project_part) = project.path.strip_prefix(&vcs_root) {
+                format!("{}{}", vcs_root, style(format!("/{}", project_part)).dim())
+            } else {
+                project.path.to_string()
+            }
+        } else {
+            project.path.to_string()
+        }
+    } else {
+        project.path.to_string()
+    };
+
+    let line = if use_color {
+        let info = style(format!("({}; {})", tools, vcs)).dim();
+        format!("{} {}", path, info)
+    } else {
+        format!("{} ({}; {})", path, tools, vcs)
+    };
+
+    term.write_line(&line)?;
+
+    Ok(())
+}
