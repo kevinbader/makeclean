@@ -1,6 +1,6 @@
 [package]
 name = "makeclean"
-version = "0.3.2"
+version = "0.3.3"
 edition = "2021"
 description = "Clean up projects you're no longer working on."
 authors = ["Kevin Bader <kevinbader@users.noreply.github.com>"]
