@@ -9,7 +9,7 @@ mod vcs;
 use anyhow::Context;
 use build_tool_manager::BuildToolManager;
 use chrono::Duration;
-use console::{style, Term};
+use console::{colors_enabled, style, Term};
 use dialoguer::{
     theme::{ColorfulTheme, SimpleTheme, Theme},
     Confirm,
@@ -21,6 +21,7 @@ use tracing::debug;
 pub use crate::cli::Cli;
 use crate::{
     find_projects::projects_below,
+    fs::format_size,
     project::{dto::ProjectDto, ProjectFilter, StatusFilter},
 };
 
@@ -33,11 +34,31 @@ pub fn list(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()
     };
     debug!("listing projects with {project_filter:?}");
 
-    let term = Term::stdout();
+    let mut freeable_bytes = 0;
     for project in projects_below(&cli.directory, &project_filter, &build_tool_manager) {
-        print_project(&project, cli.json, &term)?;
+        print_project(&project, cli.json)?;
+        freeable_bytes += project
+            .build_tools
+            .iter()
+            .map(|x| match x.status() {
+                Ok(build_tools::BuildStatus::Built { freeable_bytes }) => freeable_bytes,
+                _ => 0,
+            })
+            .sum::<u64>();
     }
-    term.flush()?;
+
+    if !cli.json {
+        println!();
+        let message = format!(
+            "Found {} of build artifacts and dependencies.",
+            format_size(freeable_bytes)
+        );
+        if colors_enabled() {
+            println!("{}", style(message).green());
+        } else {
+            println!("{}", message);
+        }
+    }
 
     Ok(())
 }
@@ -56,13 +77,11 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
         ProjectFilter { min_stale, status }
     };
 
-    let term = Term::stdout();
     let mut projects = vec![];
     for project in projects_below(&cli.directory, &project_filter, &build_tool_manager) {
-        print_project(&project, cli.json, &term)?;
+        print_project(&project, cli.json)?;
         projects.push(project);
     }
-    term.flush()?;
 
     if projects.is_empty() {
         // TODO: Perhaps output "No projects found. Try running with RUST_LOG=trace to see why."
@@ -71,13 +90,23 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
         return Ok(());
     }
 
+    let freeable_bytes = projects
+        .iter()
+        .flat_map(|p| p.build_tools.iter())
+        .map(|bt| match bt.status() {
+            Ok(build_tools::BuildStatus::Built { freeable_bytes }) => freeable_bytes,
+            _ => 0,
+        })
+        .sum::<u64>();
+
     println!();
     let do_continue = if cli.dry_run || cli.yes {
         true
     } else {
-        let theme = theme(&term);
+        let theme = theme();
+        let prompt = format!("Clean up those projects ({})?", format_size(freeable_bytes));
         Confirm::with_theme(&*theme)
-            .with_prompt("Clean up those projects?")
+            .with_prompt(prompt)
             .default(true)
             .interact()?
     };
@@ -103,7 +132,12 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
         println!("{}", style("SUMMARY:").bold());
         println!(
             "  {}",
-            style(format!("{} projects found.", projects.len())).green()
+            style(format!(
+                "{} projects found, with {} of build artifacts and dependencies.",
+                projects.len(),
+                format_size(freeable_bytes)
+            ))
+            .green()
         );
         // TODO print how many of those could be (OR HAVE BEEN) cleaned and how much space that would/was save/d.
         let n_projects_without_vcs = projects.iter().filter(|p| p.vcs.is_none()).count();
@@ -126,33 +160,28 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
     Ok(())
 }
 
-fn theme(term: &Term) -> Box<dyn Theme> {
-    if use_color(term) {
+fn theme() -> Box<dyn Theme> {
+    if colors_enabled() {
         Box::new(ColorfulTheme::default())
     } else {
         Box::new(SimpleTheme {})
     }
 }
 
-fn print_project(project: &Project, json: bool, term: &Term) -> anyhow::Result<()> {
+fn print_project(project: &Project, json: bool) -> anyhow::Result<()> {
     if json {
         let dto = ProjectDto::from(project);
         serde_json::to_writer(io::stdout(), &dto)?;
         // Add the newline:
         println!();
     } else {
-        pretty_print_project(project, term)?;
+        pretty_print_project(project)?;
     }
     Ok(())
 }
 
-fn use_color(term: &Term) -> bool {
-    let features = term.features();
-    features.colors_supported() && features.is_attended()
-}
-
-fn pretty_print_project(project: &Project, term: &Term) -> anyhow::Result<()> {
-    let use_color = use_color(term);
+fn pretty_print_project(project: &Project) -> anyhow::Result<()> {
+    let use_color = colors_enabled();
 
     let tools = project
         .build_tools
@@ -165,6 +194,12 @@ fn pretty_print_project(project: &Project, term: &Term) -> anyhow::Result<()> {
         .as_ref()
         .map(|x| x.name())
         .unwrap_or_else(|| "no VCS");
+    let freeable = match project.freeable_bytes() {
+        0 => String::new(),
+        bytes => format!("; {}", format_size(bytes)),
+    };
+    // See https://docs.rs/chrono/latest/chrono/format/strftime/index.html
+    let mtime = project.mtime.format("%F");
 
     let path = if use_color {
         if let Some(vcs_root) = project.vcs.as_ref().map(|vcs| vcs.root()) {
@@ -182,13 +217,13 @@ fn pretty_print_project(project: &Project, term: &Term) -> anyhow::Result<()> {
     };
 
     let line = if use_color {
-        let info = style(format!("({}; {})", tools, vcs)).dim();
+        let info = style(format!("({tools}; {vcs}; {mtime}{freeable})")).dim();
         format!("{} {}", path, info)
     } else {
-        format!("{} ({}; {})", path, tools, vcs)
+        format!("{path} ({tools}; {vcs}; {mtime}{freeable})")
     };
 
-    term.write_line(&line)?;
+    println!("{line}");
 
     Ok(())
 }

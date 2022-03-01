@@ -90,6 +90,16 @@ impl Project {
             mtime,
         })
     }
+
+    pub fn freeable_bytes(&self) -> u64 {
+        self.build_tools
+            .iter()
+            .map(|x| match x.status() {
+                Ok(BuildStatus::Built { freeable_bytes }) => freeable_bytes,
+                _ => 0,
+            })
+            .sum::<u64>()
+    }
 }
 
 fn project_name_from(
