@@ -11,7 +11,7 @@ use fs_set_times::set_mtime;
 use makeclean::project::dto::ProjectDto;
 use walkdir::WalkDir;
 
-use crate::util::{cargo::cargo_init, git::git_init, npm::npm_init};
+use crate::util::{cargo::cargo_init, fs::canonicalized_str, git::git_init, npm::npm_init};
 
 #[test]
 fn find_new_project_without_git() -> Result<()> {
@@ -29,7 +29,7 @@ fn find_new_project_without_git() -> Result<()> {
 
     // We expect a single line/project
     let project: ProjectDto = serde_json::from_str(output.trim()).unwrap();
-    assert_eq!(project.path, project_dir.path().to_str().unwrap());
+    assert_eq!(project.path, canonicalized_str(&project_dir));
 
     Ok(())
 }
@@ -52,7 +52,7 @@ fn directories_ignored_by_git_are_not_considered() -> Result<()> {
 
     // Only the project in `normal_dir` is returned:
     let project: ProjectDto = serde_json::from_str(output.trim()).unwrap();
-    assert_eq!(project.path, root.join("normal_dir").to_str().unwrap());
+    assert_eq!(project.path, canonicalized_str(&root.join("normal_dir")));
 
     Ok(())
 }
@@ -85,10 +85,10 @@ fn subprojects_are_discovered() -> Result<()> {
     );
     assert!(projects
         .iter()
-        .any(|p| p.path == root.path().to_str().unwrap() && p.build_tools == vec!["Cargo"]));
+        .any(|p| p.path == canonicalized_str(&root.path()) && p.build_tools == vec!["Cargo"]));
     assert!(projects
         .iter()
-        .any(|p| p.path == root.join("web").to_str().unwrap() && p.build_tools == vec!["NPM"]));
+        .any(|p| p.path == canonicalized_str(&root.join("web")) && p.build_tools == vec!["NPM"]));
 
     Ok(())
 }
@@ -110,7 +110,7 @@ fn finds_project_with_project_type_filter() -> Result<()> {
 
         // We expect a single line/project
         let project: ProjectDto = serde_json::from_str(output.trim()).unwrap();
-        assert_eq!(project.path, project_dir.path().to_str().unwrap());
+        assert_eq!(project.path, canonicalized_str(&project_dir));
     }
 
     Ok(())
@@ -202,7 +202,7 @@ fn finds_projects_according_to_min_stale() -> Result<()> {
 
     // We expect a single line/project
     let project: ProjectDto = serde_json::from_str(output.trim()).unwrap();
-    assert_eq!(project.path, project_dir.path().to_str().unwrap());
+    assert_eq!(project.path, canonicalized_str(&project_dir));
 
     Ok(())
 }

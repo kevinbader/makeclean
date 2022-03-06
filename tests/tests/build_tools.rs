@@ -10,7 +10,7 @@ use assert_fs::{
 };
 use makeclean::project::dto::ProjectDto;
 
-use crate::util::{cargo::cargo_init, elm::elm_init, npm::npm_init};
+use crate::util::{cargo::cargo_init, elm::elm_init, fs::canonicalized_str, npm::npm_init};
 
 #[test]
 fn recognizes_projects() -> Result<()> {
@@ -43,7 +43,7 @@ fn recognizes_projects() -> Result<()> {
 
         // We expect a single line/project
         let project: ProjectDto = serde_json::from_str(output.trim()).unwrap();
-        assert_eq!(project.path, project_dir.path().to_str().unwrap());
+        assert_eq!(project.path, canonicalized_str(&project_dir));
         assert_eq!(project.build_tools.len(), 1);
         assert_eq!(project.build_tools[0], *build_tool_name);
 
