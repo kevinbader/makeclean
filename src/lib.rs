@@ -2,6 +2,7 @@ pub mod build_tool_manager;
 pub mod build_tools;
 mod cli;
 pub mod find_projects;
+pub mod find_projects2;
 mod fs;
 pub mod project;
 mod vcs;
@@ -22,6 +23,7 @@ use tracing::debug;
 pub use crate::cli::Cli;
 use crate::{
     find_projects::projects_below,
+    find_projects2::projects_below2,
     fs::format_size,
     project::{dto::ProjectDto, ProjectFilter, StatusFilter},
 };
@@ -36,7 +38,7 @@ pub fn list(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()
     debug!("listing projects with {project_filter:?}");
 
     let mut freeable_bytes = 0;
-    for project in projects_below(&cli.directory, &project_filter, &build_tool_manager) {
+    for project in projects_below2(&cli.directory, &project_filter, &build_tool_manager) {
         print_project(&project, cli.json)?;
         freeable_bytes += project
             .build_tools

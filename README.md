@@ -5,6 +5,13 @@
 
 Removes generated and downloaded files from code projects to free up space.
 
+Features:
+
+- List, cleans and archives projects depending on how long you haven't touched them.
+- Respects `.gitignore` files even outside Git repositories. Build tools often create a `.gitignore` file when initializing a new project, so this makes sure that the dependencies are not traversed even in case you have not initialized the Git repository yet.
+- Supports `.ignore` files, which have the same semantics as `.gitignore` files and are supported by search tools such as ripgrep and The Silver Searcher.
+- Ignores hidden directories.
+
 Currently supports the following build tools:
 
 - [x] Cargo
