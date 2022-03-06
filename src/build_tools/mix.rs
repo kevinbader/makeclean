@@ -61,12 +61,22 @@ impl BuildTool for Mix {
         let build_dir = self.path.join("_build");
         let deps_dir = self.path.join("deps");
         let status = if build_dir.exists() || deps_dir.exists() {
-            let freeable_bytes = dir_size(build_dir.as_ref()) + dir_size(deps_dir.as_ref());
-            BuildStatus::Built { freeable_bytes }
+            match dir_size(build_dir.as_ref()) + dir_size(deps_dir.as_ref()) {
+                0 => BuildStatus::Clean,
+                freeable_bytes => BuildStatus::Built { freeable_bytes },
+            }
         } else {
             BuildStatus::Clean
         };
         Ok(status)
+    }
+
+    fn project_name(&self) -> Option<anyhow::Result<String>> {
+        // mix.exs, which contains the project name, is not easy to parse without Elixir.
+        // While `mix run -e 'IO.puts(Mix.Project.config[:app])'` would work, it would
+        // also compile the application, which is of course an unintended side effect.
+        // To prevent false positives, we don't even try.
+        None
     }
 }
 

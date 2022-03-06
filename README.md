@@ -7,12 +7,12 @@ Removes generated and downloaded files from code projects to free up space.
 
 Currently supports the following build tools:
 
-- [X] Cargo
-- [X] Elm
+- [x] Cargo
+- [x] Elm
 - [ ] Gradle
 - [ ] Maven
-- [ ] Mix
-- [X] NPM
+- [x] Mix
+- [x] NPM
 
 Table of contents:
 

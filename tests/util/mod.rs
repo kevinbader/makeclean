@@ -2,6 +2,7 @@ pub mod cargo;
 pub mod elm;
 pub mod fs;
 pub mod git;
+pub mod mix;
 pub mod npm;
 
 // pub fn elm_init<T>(parent: &T) -> Result<()>

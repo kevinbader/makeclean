@@ -170,7 +170,7 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
                 )
             } else {
                 format!(
-                    "{} {projects_label} found, with {} of build artifacts and dependencies.",
+                    "{} built {projects_label} found, with {} of build artifacts and dependencies.",
                     projects.len(),
                     format_size(freeable_bytes)
                 )

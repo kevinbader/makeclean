@@ -10,7 +10,9 @@ use assert_fs::{
 };
 use makeclean::project::dto::ProjectDto;
 
-use crate::util::{cargo::cargo_init, elm::elm_init, fs::canonicalized_str, npm::npm_init};
+use crate::util::{
+    cargo::cargo_init, elm::elm_init, fs::canonicalized_str, mix::mix_init, npm::npm_init,
+};
 
 #[test]
 fn recognizes_projects() -> Result<()> {
@@ -20,7 +22,7 @@ fn recognizes_projects() -> Result<()> {
         ("Elm", elm_init),
         // ("Gradle", gradle_init),
         // ("Maven", maven_init),
-        // ("Mix", mix_init),
+        ("Mix", mix_init),
         ("NPM", npm_init),
     ];
     for (build_tool_name, init) in tools {
