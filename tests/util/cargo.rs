@@ -1,7 +1,7 @@
 use std::{fs, io, path::Path, process::Command};
 
 use anyhow::{bail, Result};
-use assert_fs::fixture::{FileTouch, FileWriteStr, PathChild};
+use assert_fs::fixture::{FileWriteStr, PathChild};
 use tracing::warn;
 
 pub fn cargo_init<T>(parent: &T) -> Result<()>
@@ -19,7 +19,15 @@ where
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
             warn!("failed to exec cargo: {}", e);
             // not installed on this system.. let's fake it then
-            parent.child("Cargo.toml").touch()?;
+            let cargo_toml = r#"
+                [package]
+                name = "cargo_test_project"
+                version = "0.1.0"
+                edition = "2021"
+
+                [dependencies]
+                "#;
+            parent.child("Cargo.toml").write_str(cargo_toml)?;
             Ok(())
         }
         Err(e) => Err(e.into()),
