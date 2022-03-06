@@ -597,6 +597,7 @@ dependencies = [
  "fs-set-times",
  "git2",
  "human-panic",
+ "ignore",
  "predicates",
  "regex",
  "serde",
