@@ -16,10 +16,6 @@ pub trait BuildToolProbe: std::fmt::Debug {
 }
 
 pub trait BuildTool: std::fmt::Debug + std::fmt::Display {
-    fn status(&self) -> anyhow::Result<BuildStatus> {
-        Ok(BuildStatus::Unknown)
-    }
-
     /// Clean the project.
     ///
     /// Depending on the build tool represented, this should preferably invoke
@@ -33,6 +29,10 @@ pub trait BuildTool: std::fmt::Debug + std::fmt::Display {
     /// what would happen is printed to stdout.
     fn clean_project(&mut self, dry_run: bool) -> anyhow::Result<()>;
 
+    fn status(&self) -> anyhow::Result<BuildStatus> {
+        Ok(BuildStatus::Unknown)
+    }
+
     /// The project's name as parsed from build tool configuration.
     ///
     /// Returns None if the project has no name configured, or in case the build
@@ -43,7 +43,7 @@ pub trait BuildTool: std::fmt::Debug + std::fmt::Display {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum BuildStatus {
     /// There are no build artifacts or dependency that could be cleaned up.
     Clean,

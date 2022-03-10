@@ -89,8 +89,6 @@ mod test {
 
     fn build_tool_manager() -> BuildToolManager {
         let mut btm = BuildToolManager::default();
-        // remove all default probes
-        btm.filter(&[String::new()]);
 
         let test_probe = Box::new(TestProbe {});
         btm.register(test_probe);

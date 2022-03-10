@@ -9,7 +9,12 @@ fn main() -> anyhow::Result<()> {
 
     let cli = Cli::parse();
 
-    let mut build_tool_manager = BuildToolManager::default();
+    let mut build_tool_manager = if cli.list {
+        BuildToolManager::with_readonly_probes()
+    } else {
+        BuildToolManager::with_readwrite_probes()
+    };
+
     let project_types = &cli.types;
     if !project_types.is_empty() {
         build_tool_manager.filter(project_types);

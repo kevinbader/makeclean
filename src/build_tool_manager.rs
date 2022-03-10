@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use tracing::debug;
+use tracing::{debug, warn};
 
 use crate::build_tools::{cargo, elm, mix, npm, BuildTool, BuildToolProbe};
 
@@ -10,15 +10,56 @@ pub struct BuildToolManager {
     probes: Vec<Box<dyn BuildToolProbe>>,
 }
 
+#[cfg(test)]
+#[allow(clippy::derivable_impls)]
 impl Default for BuildToolManager {
     fn default() -> Self {
+        Self {
+            probes: Default::default(),
+        }
+    }
+}
+
+impl BuildToolManager {
+    pub fn with_readonly_probes() -> Self {
         let mut build_tool_manager = Self {
             probes: Default::default(),
         };
 
-        cargo::register(&mut build_tool_manager);
+        if let Err(e) = cargo::register(&mut build_tool_manager, true) {
+            warn!("Cargo disabled: {e}");
+        }
+
         elm::register(&mut build_tool_manager);
-        mix::register(&mut build_tool_manager);
+
+        if let Err(e) = mix::register(&mut build_tool_manager, true) {
+            warn!("Mix disabled: {e}");
+        }
+
+        npm::register(&mut build_tool_manager);
+
+        // TODO: Activate those as soon as the tests are there:
+        // gradle::register(&mut build_tool_manager);
+        // maven::register(&mut build_tool_manager);
+
+        build_tool_manager
+    }
+
+    pub fn with_readwrite_probes() -> Self {
+        let mut build_tool_manager = Self {
+            probes: Default::default(),
+        };
+
+        if let Err(e) = cargo::register(&mut build_tool_manager, false) {
+            warn!("Cargo disabled: {e}");
+        }
+
+        elm::register(&mut build_tool_manager);
+
+        if let Err(e) = mix::register(&mut build_tool_manager, false) {
+            warn!("Mix disabled: {e}");
+        }
+
         npm::register(&mut build_tool_manager);
 
         // TODO: Activate those as soon as the tests are there:
@@ -65,33 +106,5 @@ impl BuildToolManager {
             .iter()
             .filter_map(|probe| probe.probe(path))
             .collect()
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use crate::build_tools::{gradle, maven, mix};
-
-    use super::*;
-
-    #[test]
-    fn filtering_works_with_multiple_project_types() {
-        let mut build_tool_manager = BuildToolManager {
-            probes: Default::default(),
-        };
-
-        cargo::register(&mut build_tool_manager);
-        elm::register(&mut build_tool_manager);
-        gradle::register(&mut build_tool_manager);
-        maven::register(&mut build_tool_manager);
-        mix::register(&mut build_tool_manager);
-        npm::register(&mut build_tool_manager);
-
-        let project_types = vec!["rs".to_owned(), "elm".to_owned()];
-        build_tool_manager.filter(&project_types);
-
-        assert_eq!(build_tool_manager.probes.len(), 2);
-        assert!(format!("{:?}", build_tool_manager.probes[0]).starts_with("CargoProbe"));
-        assert!(format!("{:?}", build_tool_manager.probes[1]).starts_with("ElmProbe"));
     }
 }

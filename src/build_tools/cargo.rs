@@ -5,12 +5,28 @@ use serde::Deserialize;
 use std::{
     fs,
     path::{Path, PathBuf},
-    process::Command,
+    process::{Command, Stdio},
 };
 
-pub fn register(manager: &mut BuildToolManager) {
+pub fn register(manager: &mut BuildToolManager, probe_only: bool) -> anyhow::Result<()> {
+    if !probe_only {
+        let cargo_is_installed = Command::new("cargo")
+            .arg("--version")
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false);
+
+        if !cargo_is_installed {
+            bail!("cargo is not available");
+        }
+    }
+
     let probe = Box::new(CargoProbe {});
     manager.register(probe);
+
+    Ok(())
 }
 
 #[derive(Debug)]
@@ -40,17 +56,6 @@ pub struct Cargo {
 }
 
 impl BuildTool for Cargo {
-    fn status(&self) -> anyhow::Result<BuildStatus> {
-        let build_dir = self.path.join("target");
-        let status = if build_dir.exists() {
-            let freeable_bytes = dir_size(build_dir.as_ref());
-            BuildStatus::Built { freeable_bytes }
-        } else {
-            BuildStatus::Clean
-        };
-        Ok(status)
-    }
-
     fn clean_project(&mut self, dry_run: bool) -> anyhow::Result<()> {
         let mut cmd = Command::new("cargo");
         let cmd = cmd.arg("clean").current_dir(&self.path);
@@ -74,6 +79,17 @@ impl BuildTool for Cargo {
             }
         }
         Ok(())
+    }
+
+    fn status(&self) -> anyhow::Result<BuildStatus> {
+        let build_dir = self.path.join("target");
+        let status = if build_dir.exists() {
+            let freeable_bytes = dir_size(build_dir.as_ref());
+            BuildStatus::Built { freeable_bytes }
+        } else {
+            BuildStatus::Clean
+        };
+        Ok(status)
     }
 
     fn project_name(&self) -> Option<anyhow::Result<String>> {

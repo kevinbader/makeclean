@@ -3,12 +3,28 @@ use crate::{build_tool_manager::BuildToolManager, fs::dir_size};
 use anyhow::{bail, Context};
 use std::{
     path::{Path, PathBuf},
-    process::Command,
+    process::{Command, Stdio},
 };
 
-pub fn register(manager: &mut BuildToolManager) {
+pub fn register(manager: &mut BuildToolManager, probe_only: bool) -> anyhow::Result<()> {
+    if !probe_only {
+        let mix_is_installed = Command::new("mix")
+            .arg("--version")
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false);
+
+        if !mix_is_installed {
+            bail!("mix is not available");
+        }
+    }
+
     let probe = Box::new(MixProbe {});
     manager.register(probe);
+
+    Ok(())
 }
 
 #[derive(Debug)]
