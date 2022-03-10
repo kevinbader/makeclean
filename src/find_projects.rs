@@ -4,6 +4,7 @@ use crate::{
 
 use camino::Utf8Path;
 use ignore::WalkBuilder;
+use tracing::warn;
 
 /// An iterator over [`Project`]s in and below a given directory.
 pub fn projects_below<'a>(
@@ -23,7 +24,13 @@ pub fn projects_below<'a>(
         .filter_map(|entry| entry.path().canonicalize().ok())
         .filter_map(|path| {
             let path = Utf8Path::from_path(&path).unwrap();
-            Project::from_dir(path, project_filter, None, build_tool_manager)
+            match Project::from_dir(path, project_filter, build_tool_manager) {
+                Ok(maybe_project) => maybe_project,
+                Err(e) => {
+                    warn!("Failed to parse project at {path}: {e}");
+                    None
+                }
+            }
         })
 }
 

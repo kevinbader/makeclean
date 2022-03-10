@@ -39,13 +39,6 @@ impl VersionControlSystem {
             Git(ref git) => git.root(),
         }
     }
-
-    pub(crate) fn is_path_ignored(&self, path: &Utf8Path) -> bool {
-        use VersionControlSystem::*;
-        match *self {
-            Git(ref git) => git.is_path_ignored(path),
-        }
-    }
 }
 
 pub struct Git {
@@ -66,12 +59,6 @@ impl Git {
 
     fn root(&self) -> Utf8PathBuf {
         canonicalized(&self.repo.workdir().unwrap_or_else(|| self.repo.path())).unwrap()
-    }
-
-    fn is_path_ignored(&self, path: &Utf8Path) -> bool {
-        self.repo
-            .is_path_ignored(path)
-            .expect("should work as we know we're in a valid repo")
     }
 }
 
@@ -105,12 +92,10 @@ pub(crate) mod test {
         let _ = Repository::init(&root.path())?;
 
         // We operate in the "foo" subdirectory
-        let git = VersionControlSystem::try_from(&path_of(&level0_foo))
+        let vcs = VersionControlSystem::try_from(&path_of(&level0_foo))
             .unwrap()
             .unwrap();
-        // Given the canonical paths, the ignored directory is correctly identified:
-        assert!(!git.is_path_ignored(&path_of(&level1_bar)));
-        assert!(git.is_path_ignored(&path_of(&level1_ignored_dir)));
+        assert_eq!(vcs.name(), "Git");
 
         Ok(())
     }

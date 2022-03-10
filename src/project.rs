@@ -40,13 +40,12 @@ impl Project {
     pub fn from_dir(
         path: &Utf8Path,
         project_filter: &ProjectFilter,
-        vcs: Option<VersionControlSystem>,
         build_tool_manager: &BuildToolManager,
-    ) -> Option<Project> {
+    ) -> anyhow::Result<Option<Project>> {
         // Is this a project? => yes, if at least one build tool is recognized
         let build_tools = build_tool_manager.probe(path);
         if build_tools.is_empty() {
-            return None;
+            return Ok(None);
         }
 
         if let StatusFilter::ExceptClean = project_filter.status {
@@ -55,7 +54,7 @@ impl Project {
                 .iter()
                 .all(|tool| matches!(tool.status(), Ok(BuildStatus::Clean)))
             {
-                return None;
+                return Ok(None);
             }
         }
 
@@ -63,12 +62,12 @@ impl Project {
             Ok(name) => name,
             Err(e) => {
                 warn!("Failed to determine project name for {path:?}: {e}");
-                return None;
+                return Ok(None);
             }
         };
 
-        let mtime =
-            dir_mtime(path.as_std_path()).expect("BUG: build tool recognized but no files?!");
+        let mtime = dir_mtime(path.as_std_path())
+            .ok_or_else(|| format_err!("BUG: build tool recognized but no files?!"))?;
         let mtime: DateTime<Local> = mtime.into();
         let mtime: DateTime<Utc> = mtime.into();
 
@@ -79,16 +78,18 @@ impl Project {
                 min_stale=%project_filter.min_stale,
                 "Project skipped due to recent mtime",
             );
-            return None;
+            return Ok(None);
         }
 
-        Some(Project {
+        let vcs = VersionControlSystem::try_from(path)?;
+
+        Ok(Some(Project {
             name: project_name,
             path: path.to_owned(),
             build_tools,
             vcs,
             mtime,
-        })
+        }))
     }
 
     pub fn freeable_bytes(&self) -> u64 {
