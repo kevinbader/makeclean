@@ -8,10 +8,9 @@ use chrono::Duration;
 use clap::Parser;
 use regex::Regex;
 
-/// Removes generated and downloaded files from code projects to free up space.
-///
-/// Only supports Git-controlled projects (other projects are ignored).
+/// Options
 #[derive(Parser, Debug)]
+#[clap(version, about, long_about=None)]
 pub struct Cli {
     /// JSON output (default when stdout is piped)
     ///
