@@ -23,9 +23,8 @@ pub struct Cli {
     pub list: bool,
 
     /// Projects that were modified more recently than this are ignored.
-    /// Examples: 1d = a day, 2w = two weeks, 1m = a month, 1y = a year.
-    ///
     /// With `--list`, this defaults to 0, otherwise to one month.
+    /// Examples: 1d = a day, 2w = two weeks, 1m = a month, 1y = a year.
     #[clap(value_name(r"DURATION"), short, long, parse(try_from_str=parse_duration))]
     pub min_stale: Option<Duration>,
 
