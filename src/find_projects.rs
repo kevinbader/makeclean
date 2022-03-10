@@ -1,11 +1,9 @@
 use crate::{
-    build_tool_manager::BuildToolManager, fs::canonicalized, project::ProjectFilter,
-    vcs::VersionControlSystem, Project,
+    build_tool_manager::BuildToolManager, fs::canonicalized, project::ProjectFilter, Project,
 };
-use anyhow::Context;
-use camino::{Utf8Path, Utf8PathBuf};
-use std::collections::VecDeque;
-use tracing::{debug, trace, warn};
+
+use camino::Utf8Path;
+use ignore::WalkBuilder;
 
 /// An iterator over [`Project`]s in and below a given directory.
 pub fn projects_below<'a>(
@@ -14,121 +12,19 @@ pub fn projects_below<'a>(
     build_tool_manager: &'a BuildToolManager,
 ) -> impl Iterator<Item = Project> + 'a {
     let path = canonicalized(path).unwrap();
-    Iter::new(path, project_filter, build_tool_manager)
-}
 
-pub struct Iter<'a> {
-    queue: VecDeque<Utf8PathBuf>,
-    project_filter: &'a ProjectFilter,
-    build_tool_manager: &'a BuildToolManager,
-}
-
-impl<'a> Iter<'a> {
-    fn new(
-        path: Utf8PathBuf,
-        project_filter: &'a ProjectFilter,
-        probes: &'a BuildToolManager,
-    ) -> Self {
-        let mut queue = VecDeque::new();
-        queue.push_back(path);
-
-        Self {
-            queue,
-            project_filter,
-            build_tool_manager: probes,
-        }
-    }
-}
-
-impl<'a> Iterator for Iter<'a> {
-    type Item = Project;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            if self.queue.is_empty() {
-                return None;
-            }
-            match process_next_dir(
-                &mut self.queue,
-                self.project_filter,
-                self.build_tool_manager,
-            ) {
-                Ok(Some(project)) => {
-                    debug!("project found at {:?}", project.path);
-                    return Some(project);
-                }
-                Ok(None) => {}
-                Err(e) => warn!("{e}"),
-            };
-            // If no project was found, we keep going.
-        }
-    }
-}
-
-fn process_next_dir(
-    queue: &mut VecDeque<Utf8PathBuf>,
-    project_filter: &ProjectFilter,
-    build_tool_manager: &BuildToolManager,
-) -> anyhow::Result<Option<Project>> {
-    assert!(!queue.is_empty());
-    let path = queue.pop_front().unwrap();
-    trace!("--> {path}");
-
-    let mut entries =
-        std::fs::read_dir(&path).with_context(|| format!("Failed to read directory {path}"))?;
-
-    let vcs = VersionControlSystem::try_from(&path)?;
-
-    // This check really only catches the top-level directory, as the
-    // subdirectories are checked for this before being added to the queue
-    if let Some(ref vcs) = vcs {
-        if vcs.is_path_ignored(&path) {
-            debug!(?path, "skipping directory ignored by VCS");
-            trace!("<-- {path}");
-            return Ok(None);
-        }
-    }
-
-    // We ignore any IO errors for individual directory entries
-    while let Some(Ok(entry)) = entries.next() {
-        let path = entry.path();
-        // Only consider directories:
-        if !path.is_dir() {
-            continue;
-        }
-        let path = Utf8PathBuf::try_from(path.canonicalize()?)?;
-        if is_hidden(&path) || is_special_dir(&path) {
-            continue;
-        }
-        if let Some(ref vcs) = vcs {
-            if vcs.is_path_ignored(&path) {
-                debug!(?path, "skipping directory ignored by VCS");
-                continue;
-            }
-        }
-        trace!(?path, "queued");
-        queue.push_back(path);
-    }
-
-    let project = Project::from_dir(&path, project_filter, vcs, build_tool_manager);
-    trace!("<-- {path}");
-    Ok(project)
-}
-
-fn is_hidden(path: &Utf8Path) -> bool {
-    path.file_name()
-        .map(|fname| fname.starts_with('.'))
-        .unwrap_or(false)
-}
-
-#[cfg(target_os = "macos")]
-fn is_special_dir(path: &Utf8Path) -> bool {
-    let user = std::env::var("USER").unwrap();
-    path == Utf8PathBuf::try_from(format!("/Users/{}/Library", user)).unwrap()
-}
-#[cfg(not(target_os = "macos"))]
-fn is_special_dir(_: &Utf8Path) -> bool {
-    false
+    WalkBuilder::new(&path)
+        .standard_filters(true)
+        // skip ignored directories even outside Git repositories
+        .require_git(false)
+        .build()
+        // ignore any errors
+        .filter_map(|result| result.ok())
+        .filter_map(|entry| entry.path().canonicalize().ok())
+        .filter_map(|path| {
+            let path = Utf8Path::from_path(&path).unwrap();
+            Project::from_dir(path, project_filter, None, build_tool_manager)
+        })
 }
 
 #[cfg(test)]
@@ -136,7 +32,7 @@ mod test {
     use std::{fmt::Display, fs::OpenOptions, path::Path};
 
     use assert_fs::{
-        fixture::{PathChild, PathCreateDir},
+        fixture::{FileWriteStr, PathChild, PathCreateDir},
         TempDir,
     };
     use camino::Utf8Path;
@@ -277,12 +173,12 @@ mod test {
     }
 
     #[test]
-    fn skips_project_in_gitignored_dir_if_within_git_repository() {
+    fn skips_project_in_gitignored_dir_even_outside_git_repositories() {
         let root = TempDir::new().unwrap();
         let root_path = canonicalized(root.path()).unwrap();
 
-        // init a Git repo and write .gitignore file
-        git_init(&root, "/ignored-dir/", true);
+        // write .gitignore file but don't initialize a repository
+        root.child(".gitignore").write_str("/ignored-dir/").unwrap();
 
         let ignored_dir = root.child("ignored-dir");
         ignored_dir.create_dir_all().unwrap();
@@ -294,67 +190,5 @@ mod test {
 
         dbg!(&projects);
         assert!(projects.is_empty());
-    }
-
-    fn git_init<T>(parent: &T, gitignore: &str, commit: bool)
-    where
-        T: PathChild + AsRef<Path>,
-    {
-        fn git_add(repo: &git2::Repository, pathspecs: &[&str]) -> anyhow::Result<git2::Index> {
-            let mut index = repo.index()?;
-            index.add_all(pathspecs, git2::IndexAddOption::DEFAULT, None)?;
-            index.write()?;
-
-            Ok(index)
-        }
-
-        fn git_commit(
-            repo: &git2::Repository,
-            index: &mut git2::Index,
-            message: &str,
-        ) -> anyhow::Result<()> {
-            let tree_oid = index.write_tree()?;
-            let tree = repo.find_tree(tree_oid)?;
-
-            let signature = git2::Signature::now("makeclean-test", "makeclean-test@example.com")?;
-            let author = &signature;
-            let committer = &signature;
-
-            let parents = match repo.head() {
-                Ok(head) => vec![head.peel_to_commit()?],
-                Err(e) => {
-                    if e.code() == git2::ErrorCode::UnbornBranch {
-                        // No commits yet - HEAD does not exist
-                        vec![]
-                    } else {
-                        return Err(e.into());
-                    }
-                }
-            };
-
-            let parents: Vec<&git2::Commit> = parents.iter().collect();
-
-            repo.commit(Some("HEAD"), author, committer, message, &tree, &parents)?;
-
-            Ok(())
-        }
-        std::fs::create_dir_all(parent.as_ref()).unwrap();
-        let repo = git2::Repository::init(&parent).unwrap();
-
-        if !gitignore.is_empty() {
-            let gitignore_path = parent.child(".gitignore");
-            let mut gitignore_file = std::fs::OpenOptions::new()
-                .create(true)
-                .write(true)
-                .append(true)
-                .open(gitignore_path)
-                .unwrap();
-            std::io::Write::write_all(&mut gitignore_file, gitignore.as_bytes()).unwrap();
-        }
-
-        if commit {
-            let mut index = git_add(&repo, &["."]).unwrap();
-            git_commit(&repo, &mut index, "test").unwrap();
-        }
     }
 }
