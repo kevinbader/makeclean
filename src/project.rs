@@ -4,11 +4,11 @@ mod archive;
 mod clean;
 pub mod dto;
 mod mtime;
+mod vcs;
 
 use crate::{
     build_tool_manager::BuildToolManager,
     build_tools::{BuildStatus, BuildTool},
-    vcs::VersionControlSystem,
 };
 use anyhow::format_err;
 use chrono::{DateTime, Duration, Local, Utc};
@@ -18,7 +18,7 @@ use std::{
 };
 use tracing::{trace, warn};
 
-use self::mtime::dir_mtime;
+use self::{mtime::dir_mtime, vcs::VersionControlSystem};
 
 /// Main entity.
 #[derive(Debug)]

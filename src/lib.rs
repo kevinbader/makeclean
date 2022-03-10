@@ -4,7 +4,6 @@ mod cli;
 pub mod find_projects;
 mod fs;
 pub mod project;
-mod vcs;
 
 use anyhow::Context;
 use build_tool_manager::BuildToolManager;

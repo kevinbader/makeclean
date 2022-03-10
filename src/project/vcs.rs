@@ -73,7 +73,7 @@ impl fmt::Debug for Git {
 }
 
 #[cfg(test)]
-pub(crate) mod test {
+mod test {
     use std::path::PathBuf;
 
     use super::*;
