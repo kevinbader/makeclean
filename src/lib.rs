@@ -241,12 +241,7 @@ fn pretty_print_project(project: &Project) -> anyhow::Result<()> {
     // See https://docs.rs/chrono/latest/chrono/format/strftime/index.html
     let mtime = project.mtime.format("%F");
 
-    let path = match (use_color, path_components(project)) {
-        (false, (project, None)) => project,
-        (false, (repo, Some(project))) => format!("{repo}{project}"),
-        (true, (project, None)) => project,
-        (true, (repo, Some(project))) => format!("{}{}", repo, style(project).bold()),
-    };
+    let path = ProjectPath::from(project).render(use_color);
 
     let line = if use_color {
         let info = style(format!("({tools}; {vcs}; {mtime}{freeable})")).dim();
@@ -260,31 +255,62 @@ fn pretty_print_project(project: &Project) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Returns path to project and path to subproject if within parent project
-fn path_components(project: &Project) -> (String, Option<String>) {
-    // normalize, i.e., remove trailing slash
-    let path: PathBuf = project.path.components().collect();
+struct ProjectPath {
+    /// The path up to the project_part.
+    parent: PathBuf,
+    /// The path to the project directory within its Git repository, or the name of its
+    /// directory otherwise.
+    project: PathBuf,
+}
 
-    if let Some(mut vcs_root) = project.vcs.as_ref().map(|vcs| vcs.root()) {
-        match path.strip_prefix(&vcs_root) {
-            Ok(prefix) if prefix == Path::new("") => {
-                // The project is at the root of its repository
-                (path.display().to_string(), None)
+impl ProjectPath {
+    fn from(project: &Project) -> Self {
+        // normalize, i.e., remove trailing slash
+        let path: PathBuf = project.path.components().collect();
+
+        if let Some(vcs_root) = project.vcs.as_ref().map(|vcs| vcs.root()) {
+            match path.strip_prefix(&vcs_root) {
+                Ok(postfix) if postfix == Path::new("") => {
+                    // The project is at the root of its repository; we treat it as if there
+                    // was no repository.
+                }
+                Ok(_) => {
+                    // The project is within a parent repository/project. When displaying the
+                    // project, this parent project should be considered part of the project.
+                    let vcs_root = vcs_root.as_std_path();
+                    let parent = vcs_root.parent().expect("is canonical path and not root");
+                    // normalize, i.e., remove trailing slash
+                    let project: PathBuf = path
+                        .strip_prefix(parent)
+                        .expect("is within parent")
+                        .components()
+                        .collect();
+                    return ProjectPath {
+                        parent: parent.to_owned(),
+                        project,
+                    };
+                }
+                Err(_) => panic!("expected the VCS root to be <= the project's own path"),
             }
-            Ok(project_part) => {
-                // The repo path should have a trailing slash, so we push a component, just to make sure
-                vcs_root.push("");
-                let vcs_root = vcs_root.as_str().to_owned();
-
-                // The project part should not have a trailing slash, so we normalize again
-                let project_part: PathBuf = project_part.components().collect();
-                let project_part = project_part.display().to_string();
-
-                (vcs_root, Some(project_part))
-            }
-            Err(_) => panic!("expected the VCS root to be <= the project's own path"),
         }
-    } else {
-        (path.display().to_string(), None)
+
+        let parent = path.parent().expect("is canonical path and not root");
+        let project = path.strip_prefix(parent).expect("is within parent");
+        ProjectPath {
+            parent: parent.to_owned(),
+            project: project.to_owned(),
+        }
+    }
+
+    fn render(&self, use_color: bool) -> String {
+        if use_color {
+            format!(
+                "{}/{}",
+                self.parent.display(),
+                style(self.project.display()).bold()
+            )
+        } else {
+            format!("{}/{}", self.parent.display(), self.project.display())
+        }
     }
 }
