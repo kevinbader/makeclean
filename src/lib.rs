@@ -193,7 +193,7 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
             projects
                 .iter()
                 .filter(|p| p.vcs.is_none())
-                .for_each(|p| println!("    {}", style(p.path.as_str()).dim()));
+                .for_each(|p| println!("    {}", style(p.path.display()).dim()));
         }
     }
 
@@ -277,7 +277,6 @@ impl ProjectPath {
                 Ok(_) => {
                     // The project is within a parent repository/project. When displaying the
                     // project, this parent project should be considered part of the project.
-                    let vcs_root = vcs_root.as_std_path();
                     let parent = vcs_root.parent().expect("is canonical path and not root");
                     // normalize, i.e., remove trailing slash
                     let project: PathBuf = path

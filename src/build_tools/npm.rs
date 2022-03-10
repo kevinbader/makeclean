@@ -1,7 +1,9 @@
 use super::{BuildStatus, BuildTool, BuildToolProbe};
 use crate::{build_tool_manager::BuildToolManager, fs::dir_size};
-use camino::{Utf8Path, Utf8PathBuf};
-use std::fs;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 pub fn register(manager: &mut BuildToolManager) {
     let probe = Box::new(NpmProbe {});
@@ -12,7 +14,7 @@ pub fn register(manager: &mut BuildToolManager) {
 pub struct NpmProbe;
 
 impl BuildToolProbe for NpmProbe {
-    fn probe(&self, path: &Utf8Path) -> Option<Box<dyn BuildTool>> {
+    fn probe(&self, path: &Path) -> Option<Box<dyn BuildTool>> {
         if path.join("package.json").is_file() {
             Some(Box::new(Npm {
                 path: path.to_owned(),
@@ -31,7 +33,7 @@ impl BuildToolProbe for NpmProbe {
 
 #[derive(Debug)]
 pub struct Npm {
-    path: Utf8PathBuf,
+    path: PathBuf,
 }
 
 impl BuildTool for Npm {
@@ -40,7 +42,7 @@ impl BuildTool for Npm {
         if deps_dir.exists() {
             assert!(deps_dir.is_dir());
             if dry_run {
-                println!("{}: rm -r {deps_dir}", self.path);
+                println!("{}: rm -r {}", self.path.display(), deps_dir.display());
             } else {
                 fs::remove_dir_all(deps_dir)?;
             }

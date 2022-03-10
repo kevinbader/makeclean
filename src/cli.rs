@@ -2,7 +2,8 @@
 
 #![deny(missing_docs)]
 
-use camino::Utf8PathBuf;
+use std::path::PathBuf;
+
 use chrono::Duration;
 use clap::Parser;
 use regex::Regex;
@@ -59,7 +60,7 @@ pub struct Cli {
 
     /// Recursively searches for project in this directory
     #[clap(default_value = ".")]
-    pub directory: Utf8PathBuf,
+    pub directory: PathBuf,
 }
 
 fn parse_duration(s: &str) -> anyhow::Result<Duration> {

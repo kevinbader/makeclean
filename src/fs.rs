@@ -1,13 +1,7 @@
 //! Utility functions for file system handling.
 
-use camino::Utf8PathBuf;
 use std::path::Path;
 use walkdir::WalkDir;
-
-pub(crate) fn canonicalized(path: impl AsRef<Path>) -> anyhow::Result<Utf8PathBuf> {
-    let path = path.as_ref().canonicalize()?.try_into()?;
-    Ok(path)
-}
 
 pub(crate) fn dir_size(path: &Path) -> u64 {
     if !path.is_dir() {

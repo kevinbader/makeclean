@@ -25,7 +25,7 @@ impl From<&Project> for ProjectDto {
     fn from(project: &Project) -> Self {
         Self {
             name: project.name.clone(),
-            path: project.path.as_str().to_owned(),
+            path: project.path.display().to_string(),
             build_tools: project
                 .build_tools
                 .iter()
@@ -46,7 +46,7 @@ pub struct VcsDto {
 impl From<&VersionControlSystem> for VcsDto {
     fn from(vcs: &VersionControlSystem) -> Self {
         let name = vcs.name().to_owned();
-        let root = vcs.root().as_str().to_owned();
+        let root = vcs.root().display().to_string();
         Self { name, root }
     }
 }

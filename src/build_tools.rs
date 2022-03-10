@@ -1,3 +1,5 @@
+use std::path::Path;
+
 pub mod cargo;
 pub mod elm;
 pub mod gradle;
@@ -5,11 +7,9 @@ pub mod maven;
 pub mod mix;
 pub mod npm;
 
-use camino::Utf8Path;
-
 pub trait BuildToolProbe: std::fmt::Debug {
     /// Returns a [`BuildTool`] instance if it matches the given location.
-    fn probe(&self, path: &Utf8Path) -> Option<Box<dyn BuildTool>>;
+    fn probe(&self, path: &Path) -> Option<Box<dyn BuildTool>>;
 
     /// Whether the build tool matches a given build tool name or project type.
     fn applies_to(&self, name: &str) -> bool;

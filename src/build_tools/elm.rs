@@ -1,7 +1,9 @@
 use super::{BuildStatus, BuildTool, BuildToolProbe};
 use crate::{build_tool_manager::BuildToolManager, fs::dir_size};
-use camino::{Utf8Path, Utf8PathBuf};
-use std::fs;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 pub fn register(manager: &mut BuildToolManager) {
     let probe = Box::new(ElmProbe {});
@@ -12,7 +14,7 @@ pub fn register(manager: &mut BuildToolManager) {
 pub struct ElmProbe;
 
 impl BuildToolProbe for ElmProbe {
-    fn probe(&self, path: &Utf8Path) -> Option<Box<dyn BuildTool>> {
+    fn probe(&self, path: &Path) -> Option<Box<dyn BuildTool>> {
         if path.join("elm.json").is_file() {
             Some(Box::new(Elm {
                 path: path.to_owned(),
@@ -31,7 +33,7 @@ impl BuildToolProbe for ElmProbe {
 
 #[derive(Debug)]
 pub struct Elm {
-    path: Utf8PathBuf,
+    path: PathBuf,
 }
 
 impl BuildTool for Elm {
@@ -51,7 +53,11 @@ impl BuildTool for Elm {
         if build_and_deps_dir.exists() {
             assert!(build_and_deps_dir.is_dir());
             if dry_run {
-                println!("{}: rm -r {build_and_deps_dir}", self.path);
+                println!(
+                    "{}: rm -r {}",
+                    self.path.display(),
+                    build_and_deps_dir.display()
+                );
             } else {
                 fs::remove_dir_all(build_and_deps_dir)?;
             }

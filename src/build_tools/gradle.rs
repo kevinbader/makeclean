@@ -2,8 +2,10 @@ use crate::build_tool_manager::BuildToolManager;
 
 use super::{BuildTool, BuildToolProbe};
 use anyhow::{bail, Context};
-use camino::{Utf8Path, Utf8PathBuf};
-use std::process::Command;
+use std::{
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 pub fn register(manager: &mut BuildToolManager) {
     let probe = Box::new(GradleProbe {});
@@ -14,7 +16,7 @@ pub fn register(manager: &mut BuildToolManager) {
 pub struct GradleProbe;
 
 impl BuildToolProbe for GradleProbe {
-    fn probe(&self, path: &Utf8Path) -> Option<Box<dyn BuildTool>> {
+    fn probe(&self, path: &Path) -> Option<Box<dyn BuildTool>> {
         if path.join("build.gradle").is_file() {
             Some(Box::new(Gradle {
                 path: path.to_owned(),
@@ -33,7 +35,7 @@ impl BuildToolProbe for GradleProbe {
 
 #[derive(Debug)]
 pub struct Gradle {
-    path: Utf8PathBuf,
+    path: PathBuf,
 }
 
 impl BuildTool for Gradle {
@@ -41,17 +43,21 @@ impl BuildTool for Gradle {
         let mut cmd = Command::new("gradle");
         let cmd = cmd.arg("clean").current_dir(&self.path);
         if dry_run {
-            println!("{}: {:?}", self.path, cmd);
+            println!("{}: {:?}", self.path.display(), cmd);
         } else {
             let status = cmd.status().with_context(|| {
-                format!("Failed to execute {:?} for project at {}", cmd, self.path)
+                format!(
+                    "Failed to execute {:?} for project at {}",
+                    cmd,
+                    self.path.display()
+                )
             })?;
             if !status.success() {
                 bail!(
                     "Unexpected exit code {} for {:?} for project at {}",
                     status,
                     cmd,
-                    self.path
+                    self.path.display()
                 );
             }
         }

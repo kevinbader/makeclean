@@ -11,9 +11,11 @@ use crate::{
     vcs::VersionControlSystem,
 };
 use anyhow::format_err;
-use camino::{Utf8Path, Utf8PathBuf};
 use chrono::{DateTime, Duration, Local, Utc};
-use std::fmt;
+use std::{
+    fmt,
+    path::{Path, PathBuf},
+};
 use tracing::{trace, warn};
 
 use self::mtime::dir_mtime;
@@ -27,7 +29,7 @@ pub struct Project {
     /// the enclosing folder.
     pub name: String,
     /// Where this project is located.
-    pub path: Utf8PathBuf,
+    pub path: PathBuf,
     /// The build tools used.
     pub build_tools: Vec<Box<dyn BuildTool>>,
     /// The VCS, if under version control.
@@ -38,7 +40,7 @@ pub struct Project {
 
 impl Project {
     pub fn from_dir(
-        path: &Utf8Path,
+        path: &Path,
         project_filter: &ProjectFilter,
         build_tool_manager: &BuildToolManager,
     ) -> anyhow::Result<Option<Project>> {
@@ -66,7 +68,7 @@ impl Project {
             }
         };
 
-        let mtime = dir_mtime(path.as_std_path())
+        let mtime = dir_mtime(path)
             .ok_or_else(|| format_err!("BUG: build tool recognized but no files?!"))?;
         let mtime: DateTime<Local> = mtime.into();
         let mtime: DateTime<Utc> = mtime.into();
@@ -103,10 +105,7 @@ impl Project {
     }
 }
 
-fn project_name_from(
-    path: &Utf8Path,
-    build_tools: &[Box<dyn BuildTool>],
-) -> anyhow::Result<String> {
+fn project_name_from(path: &Path, build_tools: &[Box<dyn BuildTool>]) -> anyhow::Result<String> {
     for tool in build_tools {
         match tool.project_name() {
             Some(Ok(name)) => return Ok(name),
@@ -121,7 +120,7 @@ fn project_name_from(
             "Could not determine project name: Could not determine the directory name of {path:?}"
         )
     })?;
-    Ok(dirname.to_string())
+    Ok(dirname.as_os_str().to_string_lossy().to_string())
 }
 
 impl fmt::Display for Project {
@@ -138,7 +137,7 @@ impl fmt::Display for Project {
             .as_ref()
             .map(|x| format!("{x:?}"))
             .unwrap_or_else(|| "none".to_owned());
-        write!(f, "{} ({}; VCS: {})", path, tools, vcs)
+        write!(f, "{} ({}; VCS: {})", path.display(), tools, vcs)
     }
 }
 

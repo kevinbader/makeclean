@@ -1,8 +1,10 @@
 use super::{BuildStatus, BuildTool, BuildToolProbe};
 use crate::{build_tool_manager::BuildToolManager, fs::dir_size};
 use anyhow::{bail, Context};
-use camino::{Utf8Path, Utf8PathBuf};
-use std::process::Command;
+use std::{
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 pub fn register(manager: &mut BuildToolManager) {
     let probe = Box::new(MixProbe {});
@@ -13,7 +15,7 @@ pub fn register(manager: &mut BuildToolManager) {
 pub struct MixProbe;
 
 impl BuildToolProbe for MixProbe {
-    fn probe(&self, path: &Utf8Path) -> Option<Box<dyn BuildTool>> {
+    fn probe(&self, path: &Path) -> Option<Box<dyn BuildTool>> {
         if path.join("mix.exs").is_file() {
             Some(Box::new(Mix {
                 path: path.to_owned(),
@@ -32,7 +34,7 @@ impl BuildToolProbe for MixProbe {
 
 #[derive(Debug)]
 pub struct Mix {
-    path: Utf8PathBuf,
+    path: PathBuf,
 }
 
 impl BuildTool for Mix {
@@ -40,17 +42,21 @@ impl BuildTool for Mix {
         let mut cmd = Command::new("mix");
         let cmd = cmd.args(["clean", "--deps"]).current_dir(&self.path);
         if dry_run {
-            println!("{}: {:?}", self.path, cmd);
+            println!("{}: {:?}", self.path.display(), cmd);
         } else {
             let status = cmd.status().with_context(|| {
-                format!("Failed to execute {:?} for project at {}", cmd, self.path)
+                format!(
+                    "Failed to execute {:?} for project at {}",
+                    cmd,
+                    self.path.display()
+                )
             })?;
             if !status.success() {
                 bail!(
                     "Unexpected exit code {} for {:?} for project at {}",
                     status,
                     cmd,
-                    self.path
+                    self.path.display()
                 );
             }
         }

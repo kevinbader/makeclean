@@ -119,12 +119,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "camino"
-version = "1.0.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f3132262930b0522068049f5870a856ab8affc80c70d08b6ecb785771a6fc23"
-
-[[package]]
 name = "cc"
 version = "1.0.73"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -588,7 +582,6 @@ dependencies = [
  "anyhow",
  "assert_cmd",
  "assert_fs",
- "camino",
  "chrono",
  "clap",
  "console",

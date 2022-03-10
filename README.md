@@ -29,7 +29,6 @@ Table of contents:
   - [Clean projects](#clean-projects)
   - [Clean + archive projects](#clean--archive-projects)
   - [Use case: automatically run for multiple project directories](#use-case-automatically-run-for-multiple-project-directories)
-- [Limitations](#limitations)
 - [Hack it](#hack-it)
 - [License](#license)
 
@@ -123,10 +122,6 @@ $ cat playground.txt
 $ # Replacing newlines with zero-bytes is needed to process whitespace correctly without fiddling around with IFS...
 $ xargs -0 -n 1 makeclean --min-stale=7d --yes < <(tr \\n \\0 <playground.txt)
 ```
-
-## Limitations
-
-`makeclean` only supports UTF-8 encoded paths.
 
 ## Hack it
 

@@ -1,18 +1,17 @@
-use crate::{
-    build_tool_manager::BuildToolManager, fs::canonicalized, project::ProjectFilter, Project,
-};
+use std::path::Path;
 
-use camino::Utf8Path;
+use crate::{build_tool_manager::BuildToolManager, project::ProjectFilter, Project};
+
 use ignore::WalkBuilder;
 use tracing::warn;
 
 /// An iterator over [`Project`]s in and below a given directory.
 pub fn projects_below<'a>(
-    path: &Utf8Path,
+    path: &Path,
     project_filter: &'a ProjectFilter,
     build_tool_manager: &'a BuildToolManager,
 ) -> impl Iterator<Item = Project> + 'a {
-    let path = canonicalized(path).unwrap();
+    let path = path.canonicalize().expect("canonicalized path");
 
     WalkBuilder::new(&path)
         .standard_filters(true)
@@ -22,16 +21,15 @@ pub fn projects_below<'a>(
         // ignore any errors
         .filter_map(|result| result.ok())
         .filter_map(|entry| entry.path().canonicalize().ok())
-        .filter_map(|path| {
-            let path = Utf8Path::from_path(&path).unwrap();
-            match Project::from_dir(path, project_filter, build_tool_manager) {
+        .filter_map(
+            |path| match Project::from_dir(&path, project_filter, build_tool_manager) {
                 Ok(maybe_project) => maybe_project,
                 Err(e) => {
-                    warn!("Failed to parse project at {path}: {e}");
+                    warn!("Failed to parse project at {}: {e}", path.display());
                     None
                 }
-            }
-        })
+            },
+        )
 }
 
 #[cfg(test)]
@@ -42,13 +40,11 @@ mod test {
         fixture::{FileWriteStr, PathChild, PathCreateDir},
         TempDir,
     };
-    use camino::Utf8Path;
     use chrono::Duration;
 
     use crate::{
         build_tool_manager::BuildToolManager,
         build_tools::{BuildTool, BuildToolProbe},
-        fs::canonicalized,
         project::{Project, ProjectFilter, StatusFilter},
     };
 
@@ -70,7 +66,7 @@ mod test {
     #[derive(Debug)]
     struct TestProbe;
     impl BuildToolProbe for TestProbe {
-        fn probe(&self, path: &Utf8Path) -> Option<Box<dyn BuildTool>> {
+        fn probe(&self, path: &Path) -> Option<Box<dyn BuildTool>> {
             if path.join("projectfile").exists() {
                 Some(Box::new(TestTool {}))
             } else {
@@ -112,7 +108,7 @@ mod test {
     #[test]
     fn finds_project_in_root_dir() {
         let root = TempDir::new().unwrap();
-        let path = canonicalized(root.path()).unwrap();
+        let path = root.path().canonicalize().unwrap();
 
         fake_project_at(&path);
         let projects: Vec<Project> =
@@ -126,11 +122,11 @@ mod test {
     #[test]
     fn finds_project_in_subdir() {
         let root = TempDir::new().unwrap();
-        let root_path = canonicalized(root.path()).unwrap();
+        let root_path = root.path().canonicalize().unwrap();
 
         let subdir = root.child("subdir");
         subdir.create_dir_all().unwrap();
-        let subdir_path = canonicalized(subdir.path()).unwrap();
+        let subdir_path = subdir.path().canonicalize().unwrap();
 
         fake_project_at(&subdir_path);
         let projects: Vec<Project> =
@@ -144,11 +140,11 @@ mod test {
     #[test]
     fn finds_nested_project_in_subdir_of_project() {
         let root = TempDir::new().unwrap();
-        let root_path = canonicalized(root.path()).unwrap();
+        let root_path = root.path().canonicalize().unwrap();
 
         let subdir = root.child("subdir");
         subdir.create_dir_all().unwrap();
-        let subdir_path = canonicalized(subdir.path()).unwrap();
+        let subdir_path = subdir.path().canonicalize().unwrap();
 
         fake_project_at(&root_path);
         fake_project_at(&subdir_path);
@@ -165,11 +161,11 @@ mod test {
     #[test]
     fn skips_project_in_hidden_dir() {
         let root = TempDir::new().unwrap();
-        let root_path = canonicalized(root.path()).unwrap();
+        let root_path = root.path().canonicalize().unwrap();
 
         let hidden_dir = root.child(".hidden-dir");
         hidden_dir.create_dir_all().unwrap();
-        let hidden_dir_path = canonicalized(hidden_dir.path()).unwrap();
+        let hidden_dir_path = hidden_dir.path().canonicalize().unwrap();
 
         fake_project_at(&hidden_dir_path);
         let projects: Vec<Project> =
@@ -182,14 +178,14 @@ mod test {
     #[test]
     fn skips_project_in_gitignored_dir_even_outside_git_repositories() {
         let root = TempDir::new().unwrap();
-        let root_path = canonicalized(root.path()).unwrap();
+        let root_path = root.path().canonicalize().unwrap();
 
         // write .gitignore file but don't initialize a repository
         root.child(".gitignore").write_str("/ignored-dir/").unwrap();
 
         let ignored_dir = root.child("ignored-dir");
         ignored_dir.create_dir_all().unwrap();
-        let ignored_dir_path = canonicalized(ignored_dir.path()).unwrap();
+        let ignored_dir_path = ignored_dir.path().canonicalize().unwrap();
 
         fake_project_at(&ignored_dir_path);
         let projects: Vec<Project> =

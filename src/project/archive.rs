@@ -1,18 +1,17 @@
 use anyhow::{bail, Context, Result};
 use assert_fs::{fixture::PathChild, TempDir};
-use camino::{Utf8Path, Utf8PathBuf};
 use std::{
     fs::{self, File},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 use xz::write::XzEncoder;
 
-use crate::{fs::canonicalized, Project};
+use crate::Project;
 
 impl Project {
     /// Move the project's files into an archive.
-    pub fn archive(&mut self, dry_run: bool) -> Result<Utf8PathBuf> {
+    pub fn archive(&mut self, dry_run: bool) -> Result<PathBuf> {
         // The archive is created in a temporary directory. On success, the
         // project directory is renamed, then the archive is moved to the
         // project's original location, then the renamed project directory is
@@ -31,7 +30,8 @@ impl Project {
         if dry_run {
             println!(
                 "Would replace '{}/*' with {:?}",
-                self.path, final_tar_xz_path
+                self.path.display(),
+                final_tar_xz_path
             );
             return Ok(final_tar_xz_path);
         }
@@ -39,7 +39,7 @@ impl Project {
         // Create the archive in a temporary directory
         let tempdir = TempDir::new()?;
         let temp_tar_xz = tempdir.child(&tar_xz_fname);
-        create_tar_xz(self.path.as_std_path(), temp_tar_xz.path())?;
+        create_tar_xz(&self.path, temp_tar_xz.path())?;
 
         // Rename the project directory
         let renamed_project_path = rename_project_dir(&self.path)?;
@@ -47,7 +47,7 @@ impl Project {
         // Copy the archive to its final location
         fs::create_dir(&self.path)
             .with_context(|| format!("Failed to create target directory at {:?}", self.path))?;
-        fs::copy(temp_tar_xz.path(), final_tar_xz_path.as_std_path()).with_context(|| {
+        fs::copy(temp_tar_xz.path(), &final_tar_xz_path).with_context(|| {
             format!(
                 "Failed to copy {:?} to {:?}",
                 temp_tar_xz.path(),
@@ -57,7 +57,7 @@ impl Project {
         tempdir.close()?;
 
         // Remove the project's contents
-        fs::remove_dir_all(renamed_project_path.as_std_path())?;
+        fs::remove_dir_all(&renamed_project_path)?;
 
         Ok(final_tar_xz_path)
     }
@@ -73,8 +73,8 @@ fn create_tar_xz(src_dir: &Path, dst_path: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn rename_project_dir(project_path: &Utf8Path) -> anyhow::Result<Utf8PathBuf> {
-    let project_path = canonicalized(project_path)?;
+fn rename_project_dir(project_path: &Path) -> anyhow::Result<PathBuf> {
+    let project_path = project_path.canonicalize()?;
 
     let parent = match project_path.parent() {
         Some(dir) => dir,
@@ -88,7 +88,7 @@ fn rename_project_dir(project_path: &Utf8Path) -> anyhow::Result<Utf8PathBuf> {
     // Find an available name
     let mut new_path = None;
     for i in 1..10 {
-        let candidate = parent.join(format!(".{project_dir_name}~{i}"));
+        let candidate = parent.join(format!(".{}~{i}", project_dir_name.to_string_lossy()));
         if !candidate.exists() {
             new_path = Some(candidate);
             break;
@@ -96,10 +96,10 @@ fn rename_project_dir(project_path: &Utf8Path) -> anyhow::Result<Utf8PathBuf> {
     }
 
     if let Some(new_path) = new_path {
-        fs::rename(project_path.as_std_path(), new_path.as_std_path())
+        fs::rename(&project_path, &new_path)
             .with_context(|| format!("Failed to rename {:?} to {:?}", project_path, new_path))?;
         Ok(new_path)
     } else {
-        bail!("Could not move the project directory after archiving it. Please make sure there are no '.{}~*' directories at {}", project_dir_name, parent)
+        bail!("Could not move the project directory after archiving it. Please make sure there are no '.{}~*' directories at {}", project_dir_name.to_string_lossy(), parent.display())
     }
 }

@@ -1,9 +1,9 @@
 use anyhow::bail;
-use camino::{Utf8Path, Utf8PathBuf};
 use git2::Repository;
-use std::fmt;
-
-use crate::fs::canonicalized;
+use std::{
+    fmt,
+    path::{Path, PathBuf},
+};
 
 #[derive(Debug)]
 pub enum VersionControlSystem {
@@ -17,7 +17,7 @@ impl VersionControlSystem {
     ///
     /// In theory there could be multiple VCS managing a single directory, but
     /// arguably this is an edge case. We simply returns the first VCS that matches.
-    pub(crate) fn try_from(path: &Utf8Path) -> anyhow::Result<Option<Self>> {
+    pub(crate) fn try_from(path: &Path) -> anyhow::Result<Option<Self>> {
         if let Some(git) = Git::try_from(path)? {
             return Ok(Some(Self::Git(git)));
         }
@@ -33,7 +33,7 @@ impl VersionControlSystem {
         }
     }
 
-    pub fn root(&self) -> Utf8PathBuf {
+    pub fn root(&self) -> PathBuf {
         use VersionControlSystem::*;
         match *self {
             Git(ref git) => git.root(),
@@ -46,7 +46,7 @@ pub struct Git {
 }
 
 impl Git {
-    fn try_from(path: &Utf8Path) -> anyhow::Result<Option<Self>> {
+    fn try_from(path: &Path) -> anyhow::Result<Option<Self>> {
         // In deep repositories this might be pretty expensive, as it searches
         // up the directory hierarchy, and the same repository is opened again
         // in every directory of the working copy.
@@ -57,8 +57,12 @@ impl Git {
         }
     }
 
-    fn root(&self) -> Utf8PathBuf {
-        canonicalized(&self.repo.workdir().unwrap_or_else(|| self.repo.path())).unwrap()
+    fn root(&self) -> PathBuf {
+        self.repo
+            .workdir()
+            .unwrap_or_else(|| self.repo.path())
+            .canonicalize()
+            .unwrap()
     }
 }
 
@@ -70,13 +74,13 @@ impl fmt::Debug for Git {
 
 #[cfg(test)]
 pub(crate) mod test {
-    use super::*;
-    use crate::fs::canonicalized;
-    use assert_fs::{fixture::ChildPath, prelude::*, TempDir};
-    use camino::Utf8PathBuf;
+    use std::path::PathBuf;
 
-    fn path_of(path: &ChildPath) -> Utf8PathBuf {
-        canonicalized(&path.path()).unwrap()
+    use super::*;
+    use assert_fs::{fixture::ChildPath, prelude::*, TempDir};
+
+    fn path_of(path: &ChildPath) -> PathBuf {
+        path.path().canonicalize().unwrap()
     }
 
     #[test]

@@ -1,9 +1,12 @@
 use super::{BuildStatus, BuildTool, BuildToolProbe};
 use crate::{build_tool_manager::BuildToolManager, fs::dir_size};
 use anyhow::{bail, Context};
-use camino::{Utf8Path, Utf8PathBuf};
 use serde::Deserialize;
-use std::{fs, process::Command};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 pub fn register(manager: &mut BuildToolManager) {
     let probe = Box::new(CargoProbe {});
@@ -14,7 +17,7 @@ pub fn register(manager: &mut BuildToolManager) {
 pub struct CargoProbe;
 
 impl BuildToolProbe for CargoProbe {
-    fn probe(&self, path: &Utf8Path) -> Option<Box<dyn BuildTool>> {
+    fn probe(&self, path: &Path) -> Option<Box<dyn BuildTool>> {
         if path.join("Cargo.toml").is_file() {
             Some(Box::new(Cargo {
                 path: path.to_owned(),
@@ -33,7 +36,7 @@ impl BuildToolProbe for CargoProbe {
 
 #[derive(Debug)]
 pub struct Cargo {
-    path: Utf8PathBuf,
+    path: PathBuf,
 }
 
 impl BuildTool for Cargo {
@@ -52,17 +55,21 @@ impl BuildTool for Cargo {
         let mut cmd = Command::new("cargo");
         let cmd = cmd.arg("clean").current_dir(&self.path);
         if dry_run {
-            println!("{}: {:?}", self.path, cmd);
+            println!("{}: {:?}", self.path.display(), cmd);
         } else {
             let status = cmd.status().with_context(|| {
-                format!("Failed to execute {:?} for project at {}", cmd, self.path)
+                format!(
+                    "Failed to execute {:?} for project at {}",
+                    cmd,
+                    self.path.display()
+                )
             })?;
             if !status.success() {
                 bail!(
                     "Unexpected exit code {} for {:?} for project at {}",
                     status,
                     cmd,
-                    self.path
+                    self.path.display()
                 );
             }
         }
@@ -81,7 +88,7 @@ impl std::fmt::Display for Cargo {
     }
 }
 
-fn read_project_name_from_cargo_toml(toml_path: &Utf8Path) -> anyhow::Result<String> {
+fn read_project_name_from_cargo_toml(toml_path: &Path) -> anyhow::Result<String> {
     let cargo_toml: CargoToml = toml::from_str(&fs::read_to_string(toml_path)?)?;
     Ok(cargo_toml.package.name)
 }

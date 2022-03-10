@@ -1,6 +1,7 @@
 //! Manages build-tool probes that are used to recognize projects.
 
-use camino::Utf8Path;
+use std::path::Path;
+
 use tracing::debug;
 
 use crate::build_tools::{cargo, elm, mix, npm, BuildTool, BuildToolProbe};
@@ -59,7 +60,7 @@ impl BuildToolManager {
     }
 
     /// Returns all build tools that apply to a given location.
-    pub fn probe(&self, path: &Utf8Path) -> Vec<Box<dyn BuildTool>> {
+    pub fn probe(&self, path: &Path) -> Vec<Box<dyn BuildTool>> {
         self.probes
             .iter()
             .filter_map(|probe| probe.probe(path))
