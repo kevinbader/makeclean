@@ -36,34 +36,45 @@ pub struct Elm {
     path: PathBuf,
 }
 
-impl BuildTool for Elm {
-    fn status(&self) -> anyhow::Result<BuildStatus> {
-        let build_and_deps_dir = self.path.join("elm-stuff");
-        let status = if build_and_deps_dir.exists() {
-            let freeable_bytes = dir_size(build_and_deps_dir.as_ref());
-            BuildStatus::Built { freeable_bytes }
-        } else {
-            BuildStatus::Clean
-        };
-        Ok(status)
-    }
+static BUILD_AND_DEPS_DIR: &str = "elm-stuff";
 
+impl Elm {
+    fn dir(&self, name: &str) -> Option<PathBuf> {
+        let dir = self.path.join(name);
+        if dir.is_dir() {
+            Some(dir)
+        } else {
+            None
+        }
+    }
+}
+
+impl BuildTool for Elm {
     fn clean_project(&mut self, dry_run: bool) -> anyhow::Result<()> {
-        let build_and_deps_dir = self.path.join("elm-stuff");
-        if build_and_deps_dir.exists() {
-            assert!(build_and_deps_dir.is_dir());
+        if let Some(dir) = self.dir(BUILD_AND_DEPS_DIR) {
             if dry_run {
-                println!(
-                    "{}: rm -r {}",
-                    self.path.display(),
-                    build_and_deps_dir.display()
-                );
+                println!("{}: rm -r {}", self.path.display(), dir.display());
             } else {
-                fs::remove_dir_all(build_and_deps_dir)?;
+                fs::remove_dir_all(dir)?;
             }
         }
 
         Ok(())
+    }
+
+    fn status(&self) -> anyhow::Result<BuildStatus> {
+        let size: u64 = [BUILD_AND_DEPS_DIR]
+            .iter()
+            .filter_map(|x| self.dir(x))
+            .map(|dir| dir_size(&dir))
+            .sum();
+
+        let status = match size {
+            0 => BuildStatus::Clean,
+            freeable_bytes => BuildStatus::Built { freeable_bytes },
+        };
+
+        Ok(status)
     }
 }
 

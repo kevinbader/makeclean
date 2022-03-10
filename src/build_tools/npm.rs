@@ -36,15 +36,26 @@ pub struct Npm {
     path: PathBuf,
 }
 
+static NODE_MODULES: &str = "node_modules";
+
+impl Npm {
+    fn dir(&self, name: &str) -> Option<PathBuf> {
+        let dir = self.path.join(name);
+        if dir.is_dir() {
+            Some(dir)
+        } else {
+            None
+        }
+    }
+}
+
 impl BuildTool for Npm {
     fn clean_project(&mut self, dry_run: bool) -> anyhow::Result<()> {
-        let deps_dir = self.path.join("node_modules");
-        if deps_dir.exists() {
-            assert!(deps_dir.is_dir());
+        if let Some(node_modules) = self.dir(NODE_MODULES) {
             if dry_run {
-                println!("{}: rm -r {}", self.path.display(), deps_dir.display());
+                println!("{}: rm -r {}", self.path.display(), node_modules.display());
             } else {
-                fs::remove_dir_all(deps_dir)?;
+                fs::remove_dir_all(node_modules)?;
             }
         }
 
@@ -54,13 +65,17 @@ impl BuildTool for Npm {
     }
 
     fn status(&self) -> anyhow::Result<BuildStatus> {
-        let deps_dir = self.path.join("node_modules");
-        let status = if deps_dir.exists() {
-            let freeable_bytes = dir_size(deps_dir.as_ref());
-            BuildStatus::Built { freeable_bytes }
-        } else {
-            BuildStatus::Clean
+        let size: u64 = [NODE_MODULES]
+            .iter()
+            .filter_map(|x| self.dir(x))
+            .map(|dir| dir_size(&dir))
+            .sum();
+
+        let status = match size {
+            0 => BuildStatus::Clean,
+            freeable_bytes => BuildStatus::Built { freeable_bytes },
         };
+
         Ok(status)
     }
 }
