@@ -16,7 +16,10 @@ use dialoguer::{
     Confirm,
 };
 use project::Project;
-use std::io;
+use std::{
+    io,
+    path::{Path, PathBuf},
+};
 use tracing::debug;
 
 pub use crate::cli::Cli;
@@ -238,19 +241,11 @@ fn pretty_print_project(project: &Project) -> anyhow::Result<()> {
     // See https://docs.rs/chrono/latest/chrono/format/strftime/index.html
     let mtime = project.mtime.format("%F");
 
-    let path = if use_color {
-        if let Some(vcs_root) = project.vcs.as_ref().map(|vcs| vcs.root()) {
-            // We'd expect the VCS root to be <= the project's own path.
-            if let Ok(project_part) = project.path.strip_prefix(&vcs_root) {
-                format!("{}{}", vcs_root, style(format!("/{}", project_part)).dim())
-            } else {
-                project.path.to_string()
-            }
-        } else {
-            project.path.to_string()
-        }
-    } else {
-        project.path.to_string()
+    let path = match (use_color, path_components(project)) {
+        (false, (project, None)) => project,
+        (false, (repo, Some(project))) => format!("{repo}{project}"),
+        (true, (project, None)) => project,
+        (true, (repo, Some(project))) => format!("{}{}", repo, style(project).bold()),
     };
 
     let line = if use_color {
@@ -263,4 +258,33 @@ fn pretty_print_project(project: &Project) -> anyhow::Result<()> {
     println!("{line}");
 
     Ok(())
+}
+
+/// Returns path to project and path to subproject if within parent project
+fn path_components(project: &Project) -> (String, Option<String>) {
+    // normalize, i.e., remove trailing slash
+    let path: PathBuf = project.path.components().collect();
+
+    if let Some(mut vcs_root) = project.vcs.as_ref().map(|vcs| vcs.root()) {
+        match path.strip_prefix(&vcs_root) {
+            Ok(prefix) if prefix == Path::new("") => {
+                // The project is at the root of its repository
+                (path.display().to_string(), None)
+            }
+            Ok(project_part) => {
+                // The repo path should have a trailing slash, so we push a component, just to make sure
+                vcs_root.push("");
+                let vcs_root = vcs_root.as_str().to_owned();
+
+                // The project part should not have a trailing slash, so we normalize again
+                let project_part: PathBuf = project_part.components().collect();
+                let project_part = project_part.display().to_string();
+
+                (vcs_root, Some(project_part))
+            }
+            Err(_) => panic!("expected the VCS root to be <= the project's own path"),
+        }
+    } else {
+        (path.display().to_string(), None)
+    }
 }
