@@ -20,7 +20,7 @@ Currently supports the following build tools:
 - [ ] Maven
 - [x] Mix
 - [x] NPM
-- [ ] Dotnet
+- [x] Dotnet
 
 Table of contents:
 
