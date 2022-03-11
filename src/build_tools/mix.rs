@@ -1,13 +1,9 @@
-use super::{BuildStatus, BuildTool, BuildToolProbe};
-use crate::{
-    build_tool_manager::BuildToolManager,
-    fs::{dir_size, is_gitignored},
-};
+use super::{remove_dirs, status_from_dirs, BuildStatus, BuildTool, BuildToolProbe};
+use crate::build_tool_manager::BuildToolManager;
 use std::{
-    fs,
     path::{Path, PathBuf},
 };
-use tracing::debug;
+
 
 pub fn register(manager: &mut BuildToolManager) {
     let probe = Box::new(MixProbe {});
@@ -44,26 +40,6 @@ impl Mix {
             path: path.to_owned(),
         }
     }
-
-    fn dir(&self, name: &str) -> Option<PathBuf> {
-        let dir = self.path.join(name);
-        if dir.is_dir() {
-            // Directories are only considered if they are ignored by Git, as
-            // `mix clean` should be good enough and removing any other
-            // directories is a nice to have.
-            if is_gitignored(&self.path, &dir) {
-                Some(dir)
-            } else {
-                debug!(
-                    "Skipping directory as not ignored by Git: {}",
-                    dir.display()
-                );
-                None
-            }
-        } else {
-            None
-        }
-    }
 }
 
 static EPHEMERAL_DIRS: &[&str] = &["_build", "deps", ".elixir_ls"];
@@ -79,30 +55,11 @@ impl BuildTool for Mix {
         // works just as well (better?), is faster, and doesn't require mix to
         // be installed.
 
-        for dir in EPHEMERAL_DIRS.iter().filter_map(|x| self.dir(x)) {
-            if dry_run {
-                println!("rm -r '{}'", dir.display());
-            } else {
-                fs::remove_dir_all(dir)?;
-            }
-        }
-
-        Ok(())
+        remove_dirs(&self.path, EPHEMERAL_DIRS, dry_run)
     }
 
     fn status(&self) -> anyhow::Result<BuildStatus> {
-        let size: u64 = EPHEMERAL_DIRS
-            .iter()
-            .filter_map(|x| self.dir(x))
-            .map(|dir| dir_size(&dir))
-            .sum();
-
-        let status = match size {
-            0 => BuildStatus::Clean,
-            freeable_bytes => BuildStatus::Built { freeable_bytes },
-        };
-
-        Ok(status)
+        status_from_dirs(&self.path, EPHEMERAL_DIRS)
     }
 
     fn project_name(&self) -> Option<anyhow::Result<String>> {
@@ -130,7 +87,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn elixir_ls_cache_is_only_removed_if_gitignored() {
+    fn elixir_ls_cache_is_removed_even_if_not_gitignored() {
         let root = TempDir::new().unwrap();
 
         root.child("normal")
@@ -153,8 +110,10 @@ mod test {
         let normal_status = Mix::new(&root.child("normal")).status().unwrap();
         assert!(matches!(normal_status, BuildStatus::Built{freeable_bytes} if freeable_bytes > 0));
 
-        // If not ignored, however, the directory is not considered, so the project is clean:
+        // If not ignored, the behavior is the same:
         let not_ignored_status = Mix::new(&root.child("not-ignored")).status().unwrap();
-        assert!(matches!(not_ignored_status, BuildStatus::Clean));
+        assert!(
+            matches!(not_ignored_status, BuildStatus::Built{freeable_bytes} if freeable_bytes > 0)
+        );
     }
 }

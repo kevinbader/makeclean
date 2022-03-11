@@ -1,4 +1,6 @@
-use std::path::Path;
+use std::{fs, path::Path};
+
+use crate::fs::dir_size;
 
 pub mod cargo;
 pub mod elm;
@@ -52,4 +54,40 @@ pub enum BuildStatus {
     Built { freeable_bytes: u64 },
     /// The status cannot be determined.
     Unknown,
+}
+
+//
+// Utils for build tools
+//
+
+fn remove_dirs(project_path: &Path, ephemeral_dirs: &[&str], dry_run: bool) -> anyhow::Result<()> {
+    for dir in ephemeral_dirs
+        .iter()
+        .map(|dirname| project_path.join(dirname))
+        .filter(|dir| dir.is_dir())
+    {
+        if dry_run {
+            println!("rm -r '{}'", dir.display());
+        } else {
+            fs::remove_dir_all(dir)?;
+        }
+    }
+
+    Ok(())
+}
+
+fn status_from_dirs(project_path: &Path, ephemeral_dirs: &[&str]) -> anyhow::Result<BuildStatus> {
+    let size: u64 = ephemeral_dirs
+        .iter()
+        .map(|dirname| project_path.join(dirname))
+        .filter(|dir| dir.is_dir())
+        .map(|dir| dir_size(&dir))
+        .sum();
+
+    let status = match size {
+        0 => BuildStatus::Clean,
+        freeable_bytes => BuildStatus::Built { freeable_bytes },
+    };
+
+    Ok(status)
 }

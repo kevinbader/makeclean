@@ -1,32 +1,16 @@
-use super::{BuildStatus, BuildTool, BuildToolProbe};
-use crate::{build_tool_manager::BuildToolManager, fs::dir_size};
-use anyhow::{bail, Context};
+use super::{remove_dirs, status_from_dirs, BuildStatus, BuildTool, BuildToolProbe};
+use crate::build_tool_manager::BuildToolManager;
+
 use serde::Deserialize;
 use std::{
     fs,
     path::{Path, PathBuf},
-    process::{Command, Stdio},
 };
 
-pub fn register(manager: &mut BuildToolManager, probe_only: bool) -> anyhow::Result<()> {
-    if !probe_only {
-        let cargo_is_installed = Command::new("cargo")
-            .arg("--version")
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status()
-            .map(|s| s.success())
-            .unwrap_or(false);
 
-        if !cargo_is_installed {
-            bail!("cargo is not available");
-        }
-    }
-
+pub fn register(manager: &mut BuildToolManager) {
     let probe = Box::new(CargoProbe {});
     manager.register(probe);
-
-    Ok(())
 }
 
 #[derive(Debug)]
@@ -35,9 +19,7 @@ pub struct CargoProbe;
 impl BuildToolProbe for CargoProbe {
     fn probe(&self, path: &Path) -> Option<Box<dyn BuildTool>> {
         if path.join("Cargo.toml").is_file() {
-            Some(Box::new(Cargo {
-                path: path.to_owned(),
-            }))
+            Some(Box::new(Cargo::new(path)))
         } else {
             None
         }
@@ -55,41 +37,29 @@ pub struct Cargo {
     path: PathBuf,
 }
 
+impl Cargo {
+    fn new(path: &Path) -> Self {
+        Self {
+            path: path.to_owned(),
+        }
+    }
+}
+
+static EPHEMERAL_DIRS: &[&str] = &["target"];
+
 impl BuildTool for Cargo {
     fn clean_project(&mut self, dry_run: bool) -> anyhow::Result<()> {
-        let mut cmd = Command::new("cargo");
-        let cmd = cmd.arg("clean").current_dir(&self.path);
-        if dry_run {
-            println!("{}: {:?}", self.path.display(), cmd);
-        } else {
-            let status = cmd.status().with_context(|| {
-                format!(
-                    "Failed to execute {:?} for project at {}",
-                    cmd,
-                    self.path.display()
-                )
-            })?;
-            if !status.success() {
-                bail!(
-                    "Unexpected exit code {} for {:?} for project at {}",
-                    status,
-                    cmd,
-                    self.path.display()
-                );
-            }
-        }
-        Ok(())
+        // `cargo clean` exists, but according to its man page:
+        // "With no options, cargo clean will delete the entire target directory.".
+        // So removing the target directory directly instead of shelling out has
+        // the same effect, and also works in case Cargo is not installed on the
+        // system.
+
+        remove_dirs(&self.path, EPHEMERAL_DIRS, dry_run)
     }
 
     fn status(&self) -> anyhow::Result<BuildStatus> {
-        let build_dir = self.path.join("target");
-        let status = if build_dir.exists() {
-            let freeable_bytes = dir_size(build_dir.as_ref());
-            BuildStatus::Built { freeable_bytes }
-        } else {
-            BuildStatus::Clean
-        };
-        Ok(status)
+        status_from_dirs(&self.path, EPHEMERAL_DIRS)
     }
 
     fn project_name(&self) -> Option<anyhow::Result<String>> {
