@@ -1,6 +1,7 @@
 use super::{BuildStatus, BuildTool, BuildToolProbe};
 use crate::{build_tool_manager::BuildToolManager, fs::dir_size};
 use std::{
+    fs,
     path::{Path, PathBuf},
 };
 
@@ -44,14 +45,34 @@ pub struct Dotnet {
     path: PathBuf,
 }
 
+impl Dotnet {
+    fn dir(&self, name: &str) -> Option<PathBuf> {
+        let dir = self.path.join(name);
+        if dir.is_dir() {
+            Some(dir)
+        } else {
+            None
+        }
+    }
+}
+
+static BIN_DIR: &str = "bin";
+static OBJ_DIR: &str = "obj";
+
 impl BuildTool for Dotnet {
     fn clean_project(&mut self, dry_run: bool) -> anyhow::Result<()> {
-        if dry_run {
-            println!("{}: rm -r bin", self.path.display());
-            println!("{}: rm -r obj", self.path.display());
-        } else {
-            //fs::remove_dir_all(node_modules)?;
+        if let Some(bin_dir) = &self.dir(BIN_DIR) {
+            if let Some(obj_dir) = &self.dir(OBJ_DIR) {
+                if dry_run {
+                    println!("{}: rm -r {}", self.path.display(), bin_dir.display());
+                    println!("{}: rm -r {}", self.path.display(), obj_dir.display());
+                } else {
+                    fs::remove_dir_all(bin_dir)?;
+                    fs::remove_dir_all(obj_dir)?;
+                }           
+            }
         }
+
         Ok(())
     }
 
