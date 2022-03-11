@@ -7,7 +7,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-
 pub fn register(manager: &mut BuildToolManager) {
     let probe = Box::new(CargoProbe {});
     manager.register(probe);

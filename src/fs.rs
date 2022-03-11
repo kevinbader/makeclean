@@ -1,7 +1,6 @@
 //! Utility functions for file system handling.
 
-
-use std::path::{Path};
+use std::path::Path;
 
 use walkdir::WalkDir;
 

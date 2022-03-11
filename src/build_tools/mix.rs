@@ -1,9 +1,6 @@
 use super::{remove_dirs, status_from_dirs, BuildStatus, BuildTool, BuildToolProbe};
 use crate::build_tool_manager::BuildToolManager;
-use std::{
-    path::{Path, PathBuf},
-};
-
+use std::path::{Path, PathBuf};
 
 pub fn register(manager: &mut BuildToolManager) {
     let probe = Box::new(MixProbe {});
