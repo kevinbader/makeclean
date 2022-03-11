@@ -31,11 +31,7 @@ impl BuildToolManager {
         }
 
         elm::register(&mut build_tool_manager);
-
-        if let Err(e) = mix::register(&mut build_tool_manager, true) {
-            warn!("Mix disabled: {e}");
-        }
-
+        mix::register(&mut build_tool_manager);
         npm::register(&mut build_tool_manager);
 
         // TODO: Activate those as soon as the tests are there:
@@ -55,11 +51,7 @@ impl BuildToolManager {
         }
 
         elm::register(&mut build_tool_manager);
-
-        if let Err(e) = mix::register(&mut build_tool_manager, false) {
-            warn!("Mix disabled: {e}");
-        }
-
+        mix::register(&mut build_tool_manager);
         npm::register(&mut build_tool_manager);
 
         // TODO: Activate those as soon as the tests are there:
