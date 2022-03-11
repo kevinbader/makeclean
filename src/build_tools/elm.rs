@@ -1,9 +1,6 @@
-use super::{BuildStatus, BuildTool, BuildToolProbe};
-use crate::{build_tool_manager::BuildToolManager, fs::dir_size};
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use super::{remove_dirs, status_from_dirs, BuildStatus, BuildTool, BuildToolProbe};
+use crate::build_tool_manager::BuildToolManager;
+use std::path::{Path, PathBuf};
 
 pub fn register(manager: &mut BuildToolManager) {
     let probe = Box::new(ElmProbe {});
@@ -36,45 +33,15 @@ pub struct Elm {
     path: PathBuf,
 }
 
-static BUILD_AND_DEPS_DIR: &str = "elm-stuff";
-
-impl Elm {
-    fn dir(&self, name: &str) -> Option<PathBuf> {
-        let dir = self.path.join(name);
-        if dir.is_dir() {
-            Some(dir)
-        } else {
-            None
-        }
-    }
-}
+static EPHEMERAL_DIRS: &[&str] = &["elm-stuff"];
 
 impl BuildTool for Elm {
     fn clean_project(&mut self, dry_run: bool) -> anyhow::Result<()> {
-        if let Some(dir) = self.dir(BUILD_AND_DEPS_DIR) {
-            if dry_run {
-                println!("{}: rm -r {}", self.path.display(), dir.display());
-            } else {
-                fs::remove_dir_all(dir)?;
-            }
-        }
-
-        Ok(())
+        remove_dirs(&self.path, EPHEMERAL_DIRS, dry_run)
     }
 
     fn status(&self) -> anyhow::Result<BuildStatus> {
-        let size: u64 = [BUILD_AND_DEPS_DIR]
-            .iter()
-            .filter_map(|x| self.dir(x))
-            .map(|dir| dir_size(&dir))
-            .sum();
-
-        let status = match size {
-            0 => BuildStatus::Clean,
-            freeable_bytes => BuildStatus::Built { freeable_bytes },
-        };
-
-        Ok(status)
+        status_from_dirs(&self.path, EPHEMERAL_DIRS)
     }
 }
 
