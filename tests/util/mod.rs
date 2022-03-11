@@ -4,6 +4,7 @@ pub mod fs;
 pub mod git;
 pub mod mix;
 pub mod npm;
+pub mod dotnet;
 
 // pub fn elm_init<T>(parent: &T) -> Result<()>
 // where

@@ -6,6 +6,7 @@ pub mod gradle;
 pub mod maven;
 pub mod mix;
 pub mod npm;
+pub mod dotnet;
 
 pub trait BuildToolProbe: std::fmt::Debug {
     /// Returns a [`BuildTool`] instance if it matches the given location.

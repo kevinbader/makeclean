@@ -4,7 +4,7 @@ use std::path::Path;
 
 use tracing::{debug, warn};
 
-use crate::build_tools::{cargo, elm, mix, npm, BuildTool, BuildToolProbe};
+use crate::build_tools::{cargo, elm, mix, npm, dotnet, BuildTool, BuildToolProbe};
 
 pub struct BuildToolManager {
     probes: Vec<Box<dyn BuildToolProbe>>,
@@ -38,6 +38,8 @@ impl BuildToolManager {
 
         npm::register(&mut build_tool_manager);
 
+        dotnet::register(&mut build_tool_manager);
+
         // TODO: Activate those as soon as the tests are there:
         // gradle::register(&mut build_tool_manager);
         // maven::register(&mut build_tool_manager);
@@ -61,6 +63,8 @@ impl BuildToolManager {
         }
 
         npm::register(&mut build_tool_manager);
+
+        dotnet::register(&mut build_tool_manager);
 
         // TODO: Activate those as soon as the tests are there:
         // gradle::register(&mut build_tool_manager);
