@@ -10,8 +10,8 @@ pub mod mix;
 pub mod npm;
 
 pub trait BuildToolProbe: std::fmt::Debug {
-    /// Returns a [`BuildTool`] instance if it matches the given location.
-    fn probe(&self, path: &Path) -> Option<Box<dyn BuildTool>>;
+    /// Returns a [`BuildTool`] instance if configured in the given directory.
+    fn probe(&self, dir: &Path) -> Option<Box<dyn BuildTool>>;
 
     /// Whether the build tool matches a given build tool name or project type.
     fn applies_to(&self, name: &str) -> bool;
@@ -60,10 +60,10 @@ pub enum BuildStatus {
 // Utils for build tools
 //
 
-fn remove_dirs(project_path: &Path, ephemeral_dirs: &[&str], dry_run: bool) -> anyhow::Result<()> {
+fn remove_dirs(project_dir: &Path, ephemeral_dirs: &[&str], dry_run: bool) -> anyhow::Result<()> {
     for dir in ephemeral_dirs
         .iter()
-        .map(|dirname| project_path.join(dirname))
+        .map(|dirname| project_dir.join(dirname))
         .filter(|dir| dir.is_dir())
     {
         if dry_run {
@@ -76,10 +76,10 @@ fn remove_dirs(project_path: &Path, ephemeral_dirs: &[&str], dry_run: bool) -> a
     Ok(())
 }
 
-fn status_from_dirs(project_path: &Path, ephemeral_dirs: &[&str]) -> anyhow::Result<BuildStatus> {
+fn status_from_dirs(project_dir: &Path, ephemeral_dirs: &[&str]) -> anyhow::Result<BuildStatus> {
     let size: u64 = ephemeral_dirs
         .iter()
-        .map(|dirname| project_path.join(dirname))
+        .map(|dirname| project_dir.join(dirname))
         .filter(|dir| dir.is_dir())
         .map(|dir| dir_size(&dir))
         .sum();

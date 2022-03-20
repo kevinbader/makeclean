@@ -11,10 +11,10 @@ pub fn register(manager: &mut BuildToolManager) {
 pub struct NpmProbe;
 
 impl BuildToolProbe for NpmProbe {
-    fn probe(&self, path: &Path) -> Option<Box<dyn BuildTool>> {
-        if path.join("package.json").is_file() {
+    fn probe(&self, dir: &Path) -> Option<Box<dyn BuildTool>> {
+        if dir.join("package.json").is_file() {
             Some(Box::new(Npm {
-                path: path.to_owned(),
+                dir: dir.to_owned(),
             }))
         } else {
             None
@@ -30,7 +30,7 @@ impl BuildToolProbe for NpmProbe {
 
 #[derive(Debug)]
 pub struct Npm {
-    path: PathBuf,
+    dir: PathBuf,
 }
 
 static EPHEMERAL_DIRS: &[&str] = &["node_modules"];
@@ -38,11 +38,11 @@ static EPHEMERAL_DIRS: &[&str] = &["node_modules"];
 impl BuildTool for Npm {
     fn clean_project(&mut self, dry_run: bool) -> anyhow::Result<()> {
         // TODO: also delete build directory, depending on the language(s) used
-        remove_dirs(&self.path, EPHEMERAL_DIRS, dry_run)
+        remove_dirs(&self.dir, EPHEMERAL_DIRS, dry_run)
     }
 
     fn status(&self) -> anyhow::Result<BuildStatus> {
-        status_from_dirs(&self.path, EPHEMERAL_DIRS)
+        status_from_dirs(&self.dir, EPHEMERAL_DIRS)
     }
 }
 

@@ -11,9 +11,9 @@ pub fn register(manager: &mut BuildToolManager) {
 pub struct MixProbe;
 
 impl BuildToolProbe for MixProbe {
-    fn probe(&self, path: &Path) -> Option<Box<dyn BuildTool>> {
-        if path.join("mix.exs").is_file() {
-            Some(Box::new(Mix::new(path)))
+    fn probe(&self, dir: &Path) -> Option<Box<dyn BuildTool>> {
+        if dir.join("mix.exs").is_file() {
+            Some(Box::new(Mix::new(dir)))
         } else {
             None
         }
@@ -28,13 +28,13 @@ impl BuildToolProbe for MixProbe {
 
 #[derive(Debug)]
 pub struct Mix {
-    path: PathBuf,
+    dir: PathBuf,
 }
 
 impl Mix {
     fn new(path: &Path) -> Self {
         Self {
-            path: path.to_owned(),
+            dir: path.to_owned(),
         }
     }
 }
@@ -52,11 +52,11 @@ impl BuildTool for Mix {
         // works just as well (better?), is faster, and doesn't require mix to
         // be installed.
 
-        remove_dirs(&self.path, EPHEMERAL_DIRS, dry_run)
+        remove_dirs(&self.dir, EPHEMERAL_DIRS, dry_run)
     }
 
     fn status(&self) -> anyhow::Result<BuildStatus> {
-        status_from_dirs(&self.path, EPHEMERAL_DIRS)
+        status_from_dirs(&self.dir, EPHEMERAL_DIRS)
     }
 
     fn project_name(&self) -> Option<anyhow::Result<String>> {

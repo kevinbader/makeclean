@@ -20,7 +20,11 @@ pub fn projects_below<'a>(
         .build()
         // ignore any errors
         .filter_map(|result| result.ok())
+        // iterate on directory entries only
+        .filter(|entry| entry.path().is_dir())
+        // get rid of symlinks, double slashes, etc.
         .filter_map(|entry| entry.path().canonicalize().ok())
+        // check if there is a project at this location
         .filter_map(
             |path| match Project::from_dir(&path, project_filter, build_tool_manager) {
                 Ok(maybe_project) => maybe_project,

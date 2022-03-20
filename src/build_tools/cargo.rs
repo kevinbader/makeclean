@@ -16,9 +16,9 @@ pub fn register(manager: &mut BuildToolManager) {
 pub struct CargoProbe;
 
 impl BuildToolProbe for CargoProbe {
-    fn probe(&self, path: &Path) -> Option<Box<dyn BuildTool>> {
-        if path.join("Cargo.toml").is_file() {
-            Some(Box::new(Cargo::new(path)))
+    fn probe(&self, dir: &Path) -> Option<Box<dyn BuildTool>> {
+        if dir.join("Cargo.toml").is_file() {
+            Some(Box::new(Cargo::new(dir)))
         } else {
             None
         }
@@ -33,13 +33,13 @@ impl BuildToolProbe for CargoProbe {
 
 #[derive(Debug)]
 pub struct Cargo {
-    path: PathBuf,
+    dir: PathBuf,
 }
 
 impl Cargo {
-    fn new(path: &Path) -> Self {
+    fn new(dir: &Path) -> Self {
         Self {
-            path: path.to_owned(),
+            dir: dir.to_owned(),
         }
     }
 }
@@ -54,15 +54,15 @@ impl BuildTool for Cargo {
         // the same effect, and also works in case Cargo is not installed on the
         // system.
 
-        remove_dirs(&self.path, EPHEMERAL_DIRS, dry_run)
+        remove_dirs(&self.dir, EPHEMERAL_DIRS, dry_run)
     }
 
     fn status(&self) -> anyhow::Result<BuildStatus> {
-        status_from_dirs(&self.path, EPHEMERAL_DIRS)
+        status_from_dirs(&self.dir, EPHEMERAL_DIRS)
     }
 
     fn project_name(&self) -> Option<anyhow::Result<String>> {
-        let toml_path = self.path.join("Cargo.toml");
+        let toml_path = self.dir.join("Cargo.toml");
         Some(read_project_name_from_cargo_toml(&toml_path))
     }
 }

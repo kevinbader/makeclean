@@ -11,10 +11,10 @@ pub fn register(manager: &mut BuildToolManager) {
 pub struct ElmProbe;
 
 impl BuildToolProbe for ElmProbe {
-    fn probe(&self, path: &Path) -> Option<Box<dyn BuildTool>> {
-        if path.join("elm.json").is_file() {
+    fn probe(&self, dir: &Path) -> Option<Box<dyn BuildTool>> {
+        if dir.join("elm.json").is_file() {
             Some(Box::new(Elm {
-                path: path.to_owned(),
+                dir: dir.to_owned(),
             }))
         } else {
             None
@@ -30,18 +30,18 @@ impl BuildToolProbe for ElmProbe {
 
 #[derive(Debug)]
 pub struct Elm {
-    path: PathBuf,
+    dir: PathBuf,
 }
 
 static EPHEMERAL_DIRS: &[&str] = &["elm-stuff"];
 
 impl BuildTool for Elm {
     fn clean_project(&mut self, dry_run: bool) -> anyhow::Result<()> {
-        remove_dirs(&self.path, EPHEMERAL_DIRS, dry_run)
+        remove_dirs(&self.dir, EPHEMERAL_DIRS, dry_run)
     }
 
     fn status(&self) -> anyhow::Result<BuildStatus> {
-        status_from_dirs(&self.path, EPHEMERAL_DIRS)
+        status_from_dirs(&self.dir, EPHEMERAL_DIRS)
     }
 }
 

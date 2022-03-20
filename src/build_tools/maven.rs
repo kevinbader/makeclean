@@ -16,10 +16,10 @@ pub fn register(manager: &mut BuildToolManager) {
 pub struct MavenProbe;
 
 impl BuildToolProbe for MavenProbe {
-    fn probe(&self, path: &Path) -> Option<Box<dyn BuildTool>> {
-        if path.join("pom.xml").is_file() {
+    fn probe(&self, dir: &Path) -> Option<Box<dyn BuildTool>> {
+        if dir.join("pom.xml").is_file() {
             Some(Box::new(Maven {
-                path: path.to_owned(),
+                dir: dir.to_owned(),
             }))
         } else {
             None
@@ -35,21 +35,21 @@ impl BuildToolProbe for MavenProbe {
 
 #[derive(Debug)]
 pub struct Maven {
-    path: PathBuf,
+    dir: PathBuf,
 }
 
 impl BuildTool for Maven {
     fn clean_project(&mut self, dry_run: bool) -> anyhow::Result<()> {
         let mut cmd = Command::new("mvn");
-        let cmd = cmd.arg("clean").current_dir(&self.path);
+        let cmd = cmd.arg("clean").current_dir(&self.dir);
         if dry_run {
-            println!("{}: {:?}", self.path.display(), cmd);
+            println!("{}: {:?}", self.dir.display(), cmd);
         } else {
             let status = cmd.status().with_context(|| {
                 format!(
                     "Failed to execute {:?} for project at {}",
                     cmd,
-                    self.path.display()
+                    self.dir.display()
                 )
             })?;
             if !status.success() {
@@ -57,7 +57,7 @@ impl BuildTool for Maven {
                     "Unexpected exit code {} for {:?} for project at {}",
                     status,
                     cmd,
-                    self.path.display()
+                    self.dir.display()
                 );
             }
         }

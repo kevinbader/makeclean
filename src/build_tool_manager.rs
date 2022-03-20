@@ -66,11 +66,11 @@ impl BuildToolManager {
         debug!("build tools filtered: {:?}", &self.probes);
     }
 
-    /// Returns all build tools that apply to a given location.
-    pub fn probe(&self, path: &Path) -> Vec<Box<dyn BuildTool>> {
+    /// Returns all build tools configured in a given directory.
+    pub fn probe(&self, dir: &Path) -> Vec<Box<dyn BuildTool>> {
         self.probes
             .iter()
-            .filter_map(|probe| probe.probe(path))
+            .filter_map(|probe| probe.probe(dir))
             .collect()
     }
 }
