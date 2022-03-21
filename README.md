@@ -34,8 +34,6 @@ Table of contents:
 
 ## Installation
 
-`makeclean` should work on Linux, MacOS and Windows. Only tested on Linux and Mac though.
-
 Install using [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html):
 
 ```bash
