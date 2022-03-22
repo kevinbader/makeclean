@@ -48,7 +48,7 @@ mod test {
 
     use crate::{
         build_tool_manager::BuildToolManager,
-        build_tools::{BuildTool, BuildToolProbe, BuildToolKind},
+        build_tools::{BuildTool, BuildToolKind, BuildToolProbe},
         project::{Project, ProjectFilter, StatusFilter},
     };
 
