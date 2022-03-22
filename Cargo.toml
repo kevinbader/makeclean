@@ -1,6 +1,6 @@
 [package]
 name = "makeclean"
-version = "0.6.0"
+version = "0.7.0"
 edition = "2021"
 rust-version = "1.58.1"
 description = "Clean up projects you're no longer working on."
