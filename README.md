@@ -126,9 +126,10 @@ Check out the documentation on crates.io. PRs welcome!
 
 Checklist for adding a new build tool:
 
-1. Add applicable project types to the `ProjectType` enum in [`build_tools.rs`](src/build_tools.rs).
-2. Add the new module to [`build_tools.rs`](src/build_tools.rs), creating a file below [`build_tools/`](src/build_tools/).
-3. Add `register` call to `BuildToolManager::default` in [`build_tool_manager.rs`](src/build_tool_manager.rs).
+1. Add applicable project types to the `BuildToolKind` enum in [`src/build_tools.rs`](src/build_tools.rs).
+2. Add the new module to [`src/build_tools.rs`](src/build_tools.rs), creating a file below [`src/build_tools/`](src/build_tools/).
+3. Add `register` call to `BuildToolManager::default` in [`src/build_tool_manager.rs`](src/build_tool_manager.rs).
+4. Add module and init function to [`tests/util/`](tests/util/) and to the `tools` array at [`tests/tests/build_tools.rs`](tests/tests/build_tools.rs).
 
 ## License
 
