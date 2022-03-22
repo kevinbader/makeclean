@@ -8,6 +8,8 @@ use chrono::Duration;
 use clap::Parser;
 use regex::Regex;
 
+use crate::build_tools::BuildToolKind;
+
 /// Options
 #[derive(Parser, Debug)]
 #[clap(version, about, long_about=None)]
@@ -35,8 +37,8 @@ pub struct Cli {
     /// For example, to consider Cargo and NPM projects:
     ///
     /// makeclean -t cargo -t npm
-    #[clap(short = 't', long = "type")]
-    pub types: Vec<String>,
+    #[clap(short = 't', long = "type", arg_enum)]
+    pub types: Vec<BuildToolKind>,
 
     /// Dry run - prints what would happen but doesn't actually remove/change anything.
     #[clap(short = 'n', long)]

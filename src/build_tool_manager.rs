@@ -4,7 +4,7 @@ use std::path::Path;
 
 use tracing::debug;
 
-use crate::build_tools::{cargo, elm, flutter, mix, npm, BuildTool, BuildToolProbe};
+use crate::build_tools::{cargo, elm, flutter, mix, npm, BuildTool, BuildToolKind, BuildToolProbe};
 
 pub struct BuildToolManager {
     probes: Vec<Box<dyn BuildToolProbe>>,
@@ -50,7 +50,7 @@ impl BuildToolManager {
     ///
     /// Any probes that are not related to any of the names given in
     /// `project_types` are discarded.
-    pub fn filter(&mut self, project_types: &[String]) {
+    pub fn filter(&mut self, project_types: &[BuildToolKind]) {
         let mut probes = Vec::new();
         std::mem::swap(&mut self.probes, &mut probes);
 
@@ -60,7 +60,7 @@ impl BuildToolManager {
             .filter(|probe| {
                 project_types
                     .iter()
-                    .any(|project_type| probe.applies_to(project_type))
+                    .any(|project_type| probe.applies_to(*project_type))
             })
             .collect();
 

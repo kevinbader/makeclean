@@ -1,4 +1,4 @@
-use super::{remove_dirs, status_from_dirs, BuildStatus, BuildTool, BuildToolProbe};
+use super::{remove_dirs, status_from_dirs, BuildStatus, BuildTool, BuildToolKind, BuildToolProbe};
 use crate::build_tool_manager::BuildToolManager;
 use std::path::{Path, PathBuf};
 
@@ -19,10 +19,9 @@ impl BuildToolProbe for MixProbe {
         }
     }
 
-    fn applies_to(&self, name: &str) -> bool {
-        // `name` should already be lowercase, but let's be defensive
-        let name = name.to_lowercase();
-        ["mix", "elixir", "ex", "exs"].contains(&name.as_str())
+    fn applies_to(&self, kind: BuildToolKind) -> bool {
+        use BuildToolKind::*;
+        matches!(kind, Mix | Elixir | Ex | Exs)
     }
 }
 

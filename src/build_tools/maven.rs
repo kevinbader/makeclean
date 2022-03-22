@@ -1,6 +1,6 @@
 use crate::build_tool_manager::BuildToolManager;
 
-use super::{BuildTool, BuildToolProbe};
+use super::{BuildTool, BuildToolKind, BuildToolProbe};
 use anyhow::{bail, Context};
 use std::{
     path::{Path, PathBuf},
@@ -26,10 +26,9 @@ impl BuildToolProbe for MavenProbe {
         }
     }
 
-    fn applies_to(&self, name: &str) -> bool {
-        // `name` should already be lowercase, but let's be defensive
-        let name = name.to_lowercase();
-        ["maven", "mvn"].contains(&name.as_str())
+    fn applies_to(&self, kind: BuildToolKind) -> bool {
+        use BuildToolKind::*;
+        matches!(kind, Maven | Mvn)
     }
 }
 

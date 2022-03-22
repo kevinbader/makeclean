@@ -1,6 +1,6 @@
 use crate::build_tool_manager::BuildToolManager;
 
-use super::{BuildTool, BuildToolProbe};
+use super::{BuildTool, BuildToolKind, BuildToolProbe};
 use anyhow::{bail, Context};
 use std::{
     path::{Path, PathBuf},
@@ -26,10 +26,8 @@ impl BuildToolProbe for GradleProbe {
         }
     }
 
-    fn applies_to(&self, name: &str) -> bool {
-        // `name` should already be lowercase, but let's be defensive
-        let name = name.to_lowercase();
-        name == "gradle"
+    fn applies_to(&self, kind: BuildToolKind) -> bool {
+        kind == BuildToolKind::Gradle
     }
 }
 

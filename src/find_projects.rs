@@ -48,7 +48,7 @@ mod test {
 
     use crate::{
         build_tool_manager::BuildToolManager,
-        build_tools::{BuildTool, BuildToolProbe},
+        build_tools::{BuildTool, BuildToolProbe, BuildToolKind},
         project::{Project, ProjectFilter, StatusFilter},
     };
 
@@ -78,7 +78,7 @@ mod test {
             }
         }
 
-        fn applies_to(&self, _: &str) -> bool {
+        fn applies_to(&self, _: BuildToolKind) -> bool {
             unimplemented!("not executed in these tests")
         }
     }

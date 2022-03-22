@@ -1,5 +1,8 @@
 use std::{fs, path::Path};
 
+use clap::ArgEnum;
+use displaydoc::Display;
+
 use crate::fs::dir_size;
 
 pub mod cargo;
@@ -10,12 +13,48 @@ pub mod maven;
 pub mod mix;
 pub mod npm;
 
+#[derive(Debug, Display, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum)]
+pub enum BuildToolKind {
+    /// Cargo
+    Cargo,
+    /// Rust
+    Rust,
+    /// rs
+    Rs,
+
+    /// Elm
+    Elm,
+
+    /// Flutter
+    Flutter,
+
+    /// Gradle
+    Gradle,
+
+    /// Maven
+    Maven,
+    /// mvn
+    Mvn,
+
+    /// Mix
+    Mix,
+    /// Elixir
+    Elixir,
+    /// ex
+    Ex,
+    /// exs
+    Exs,
+
+    /// NPM
+    Npm,
+}
+
 pub trait BuildToolProbe: std::fmt::Debug {
     /// Returns a [`BuildTool`] instance if configured in the given directory.
     fn probe(&self, dir: &Path) -> Option<Box<dyn BuildTool>>;
 
     /// Whether the build tool matches a given build tool name or project type.
-    fn applies_to(&self, name: &str) -> bool;
+    fn applies_to(&self, kind: BuildToolKind) -> bool;
 }
 
 pub trait BuildTool: std::fmt::Debug + std::fmt::Display {
