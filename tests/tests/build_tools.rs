@@ -11,7 +11,8 @@ use assert_fs::{
 use makeclean::project::dto::ProjectDto;
 
 use crate::util::{
-    cargo::cargo_init, elm::elm_init, fs::canonicalized_str, mix::mix_init, npm::npm_init,
+    cargo::cargo_init, elm::elm_init, flutter::flutter_init, fs::canonicalized_str, mix::mix_init,
+    npm::npm_init,
 };
 
 #[test]
@@ -20,6 +21,7 @@ fn recognizes_projects() -> Result<()> {
     let tools: &[(&str, InitFunc)] = &[
         ("Cargo", cargo_init),
         ("Elm", elm_init),
+        ("Flutter", flutter_init),
         // ("Gradle", gradle_init),
         // ("Maven", maven_init),
         ("Mix", mix_init),

@@ -4,6 +4,7 @@ use crate::fs::dir_size;
 
 pub mod cargo;
 pub mod elm;
+pub mod flutter;
 pub mod gradle;
 pub mod maven;
 pub mod mix;

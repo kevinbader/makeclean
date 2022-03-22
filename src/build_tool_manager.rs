@@ -4,7 +4,7 @@ use std::path::Path;
 
 use tracing::debug;
 
-use crate::build_tools::{cargo, elm, mix, npm, BuildTool, BuildToolProbe};
+use crate::build_tools::{cargo, elm, flutter, mix, npm, BuildTool, BuildToolProbe};
 
 pub struct BuildToolManager {
     probes: Vec<Box<dyn BuildToolProbe>>,
@@ -16,6 +16,7 @@ impl Default for BuildToolManager {
 
         cargo::register(&mut build_tool_manager);
         elm::register(&mut build_tool_manager);
+        flutter::register(&mut build_tool_manager);
         mix::register(&mut build_tool_manager);
         npm::register(&mut build_tool_manager);
 

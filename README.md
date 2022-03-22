@@ -14,12 +14,11 @@ Features:
 
 Currently supports the following build tools:
 
-- [x] Cargo
-- [x] Elm
-- [ ] Gradle
-- [ ] Maven
-- [x] Mix
-- [x] NPM
+- Cargo
+- Elm
+- Flutter
+- Mix
+- NPM
 
 Table of contents:
 
