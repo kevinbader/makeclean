@@ -79,6 +79,7 @@ mod test {
         fixture::{FileWriteStr, PathChild},
         TempDir,
     };
+    use claim::assert_matches;
 
     use super::*;
 
@@ -104,12 +105,10 @@ mod test {
 
         // In the normal case, status should report back that the project is not clean:
         let normal_status = Mix::new(&root.child("normal")).status().unwrap();
-        assert!(matches!(normal_status, BuildStatus::Built{freeable_bytes} if freeable_bytes > 0));
+        assert_matches!(normal_status, BuildStatus::Built{freeable_bytes} if freeable_bytes > 0);
 
         // If not ignored, the behavior is the same:
         let not_ignored_status = Mix::new(&root.child("not-ignored")).status().unwrap();
-        assert!(
-            matches!(not_ignored_status, BuildStatus::Built{freeable_bytes} if freeable_bytes > 0)
-        );
+        assert_matches!(not_ignored_status, BuildStatus::Built{freeable_bytes} if freeable_bytes > 0);
     }
 }
