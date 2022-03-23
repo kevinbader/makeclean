@@ -1,3 +1,5 @@
+use displaydoc::Display;
+
 use super::{remove_dirs, status_from_dirs, BuildStatus, BuildTool, BuildToolKind, BuildToolProbe};
 use crate::build_tool_manager::BuildToolManager;
 use std::path::{Path, PathBuf};
@@ -26,7 +28,8 @@ impl BuildToolProbe for ElmProbe {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Display)]
+/// Elm
 pub struct Elm {
     dir: PathBuf,
 }
@@ -40,11 +43,5 @@ impl BuildTool for Elm {
 
     fn status(&self) -> anyhow::Result<BuildStatus> {
         status_from_dirs(&self.dir, EPHEMERAL_DIRS)
-    }
-}
-
-impl std::fmt::Display for Elm {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Elm")
     }
 }

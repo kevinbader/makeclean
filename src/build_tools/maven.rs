@@ -2,6 +2,7 @@ use crate::build_tool_manager::BuildToolManager;
 
 use super::{BuildTool, BuildToolKind, BuildToolProbe};
 use anyhow::{bail, Context};
+use displaydoc::Display;
 use std::{
     path::{Path, PathBuf},
     process::Command,
@@ -32,7 +33,8 @@ impl BuildToolProbe for MavenProbe {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Display)]
+/// Maven
 pub struct Maven {
     dir: PathBuf,
 }
@@ -61,11 +63,5 @@ impl BuildTool for Maven {
             }
         }
         Ok(())
-    }
-}
-
-impl std::fmt::Display for Maven {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Maven")
     }
 }

@@ -1,6 +1,7 @@
 use super::{remove_dirs, status_from_dirs, BuildStatus, BuildTool, BuildToolKind, BuildToolProbe};
 use crate::build_tool_manager::BuildToolManager;
 
+use displaydoc::Display;
 use serde::Deserialize;
 use std::{
     fs,
@@ -30,7 +31,8 @@ impl BuildToolProbe for CargoProbe {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Display)]
+/// Cargo
 pub struct Cargo {
     dir: PathBuf,
 }
@@ -63,12 +65,6 @@ impl BuildTool for Cargo {
     fn project_name(&self) -> Option<anyhow::Result<String>> {
         let toml_path = self.dir.join("Cargo.toml");
         Some(read_project_name_from_cargo_toml(&toml_path))
-    }
-}
-
-impl std::fmt::Display for Cargo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Cargo")
     }
 }
 

@@ -1,3 +1,4 @@
+use displaydoc::Display;
 use serde::Deserialize;
 
 use super::{remove_dirs, status_from_dirs, BuildStatus, BuildTool, BuildToolKind, BuildToolProbe};
@@ -48,7 +49,8 @@ struct Pubspec {
     _flutter: serde_yaml::Value,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Display)]
+/// Flutter
 pub struct Flutter {
     dir: PathBuf,
     pubspec: Pubspec,
@@ -71,11 +73,5 @@ impl BuildTool for Flutter {
 
     fn project_name(&self) -> Option<anyhow::Result<String>> {
         Some(Ok(self.pubspec.name.clone()))
-    }
-}
-
-impl std::fmt::Display for Flutter {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Flutter")
     }
 }

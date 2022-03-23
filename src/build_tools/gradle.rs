@@ -2,6 +2,7 @@ use crate::build_tool_manager::BuildToolManager;
 
 use super::{BuildTool, BuildToolKind, BuildToolProbe};
 use anyhow::{bail, Context};
+use displaydoc::Display;
 use std::{
     path::{Path, PathBuf},
     process::Command,
@@ -31,7 +32,8 @@ impl BuildToolProbe for GradleProbe {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Display)]
+/// Gradle
 pub struct Gradle {
     dir: PathBuf,
 }
@@ -60,11 +62,5 @@ impl BuildTool for Gradle {
             }
         }
         Ok(())
-    }
-}
-
-impl std::fmt::Display for Gradle {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Gradle")
     }
 }

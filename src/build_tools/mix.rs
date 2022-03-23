@@ -1,3 +1,5 @@
+use displaydoc::Display;
+
 use super::{remove_dirs, status_from_dirs, BuildStatus, BuildTool, BuildToolKind, BuildToolProbe};
 use crate::build_tool_manager::BuildToolManager;
 use std::path::{Path, PathBuf};
@@ -25,7 +27,8 @@ impl BuildToolProbe for MixProbe {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Display)]
+/// Mix
 pub struct Mix {
     dir: PathBuf,
 }
@@ -64,12 +67,6 @@ impl BuildTool for Mix {
         // also compile the application, which is of course an unintended side effect.
         // To prevent false positives, we don't even try.
         None
-    }
-}
-
-impl std::fmt::Display for Mix {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Mix")
     }
 }
 
