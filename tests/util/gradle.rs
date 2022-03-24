@@ -4,35 +4,32 @@ use anyhow::{bail, Result};
 use assert_fs::fixture::{FileWriteStr, PathChild};
 use tracing::warn;
 
-pub fn flutter_init<T>(parent: &T) -> Result<()>
+pub fn gradle_init<T>(parent: &T) -> Result<()>
 where
     T: PathChild + AsRef<Path>,
 {
     fs::create_dir_all(parent.as_ref())?;
-    match Command::new("flutter")
+    match Command::new("gradle")
         .args([
-            "create",
-            "--no-pub",
+            "init",
             "--project-name",
-            "flutter_test_project",
-            "--platforms",
-            "linux",
-            ".",
+            "gradle_test_project",
+            "--type",
+            "basic",
         ])
         .current_dir(parent.as_ref())
         .output()
     {
         Ok(output) if output.status.success() => Ok(()),
-        Ok(output) => bail!("flutter create failed: {:?}", output),
+        Ok(output) => bail!("gradle init failed: {:?}", output),
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
-            warn!("failed to exec flutter: {}", e);
+            warn!("failed to exec gradle: {}", e);
             // not installed on this system.. let's fake it then
-            let pubspec_yaml = r#"
-                name: flutter_test_project
-                version: 1.0.0+1
-                flutter: {}
+            let settings_gradle = r#"
+                rootProject.name = 'gradle_test_project'
                 "#;
-            parent.child("pubspec.yaml").write_str(pubspec_yaml)?;
+            parent.child("settings.gradle").write_str(settings_gradle)?;
+            parent.child("build.gradle").write_str("")?;
             Ok(())
         }
         Err(e) => Err(e.into()),

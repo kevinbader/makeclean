@@ -3,6 +3,7 @@ pub mod elm;
 pub mod flutter;
 pub mod fs;
 pub mod git;
+pub mod gradle;
 pub mod mix;
 pub mod npm;
 

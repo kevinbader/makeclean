@@ -17,6 +17,7 @@ Currently supports the following build tools:
 - Cargo
 - Elm
 - Flutter
+- Gradle (Assumes `$buildDir` is set to the default value _`projectDir`_`/build`! See [`gradle.rs`](src/build_tools/gradle.rs))
 - Mix
 - NPM
 
