@@ -18,7 +18,8 @@ pub struct FlutterProbe;
 
 impl BuildToolProbe for FlutterProbe {
     fn probe(&self, dir: &Path) -> Option<Box<dyn BuildTool>> {
-        read_pubspec(&dir.join("pubspec.yaml")).ok().map(|pubspec| {
+        let yaml_path = dir.join("pubspec.yaml");
+        Pubspec::try_from(yaml_path.as_path()).ok().map(|pubspec| {
             Box::new(Flutter {
                 dir: dir.to_owned(),
                 pubspec,
@@ -29,24 +30,6 @@ impl BuildToolProbe for FlutterProbe {
     fn applies_to(&self, kind: BuildToolKind) -> bool {
         kind == BuildToolKind::Flutter
     }
-}
-
-fn read_pubspec(yaml_path: &Path) -> anyhow::Result<Pubspec> {
-    let pubspec: Pubspec = serde_yaml::from_str(&fs::read_to_string(yaml_path)?)?;
-    Ok(pubspec)
-}
-
-#[derive(Debug, Deserialize)]
-struct Pubspec {
-    name: String,
-
-    // Increases confidence this is a Flutter project file
-    #[serde(rename(deserialize = "version"))]
-    _version: String,
-
-    // Increases confidence this is a Flutter project file
-    #[serde(rename(deserialize = "flutter"))]
-    _flutter: serde_yaml::Value,
 }
 
 #[derive(Debug, Display)]
@@ -73,5 +56,27 @@ impl BuildTool for Flutter {
 
     fn project_name(&self) -> Option<anyhow::Result<String>> {
         Some(Ok(self.pubspec.name.clone()))
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct Pubspec {
+    name: String,
+
+    // Increases confidence this is a Flutter project file
+    #[serde(rename(deserialize = "version"))]
+    _version: String,
+
+    // Increases confidence this is a Flutter project file
+    #[serde(rename(deserialize = "flutter"))]
+    _flutter: serde_yaml::Value,
+}
+
+impl TryFrom<&Path> for Pubspec {
+    type Error = anyhow::Error;
+
+    fn try_from(yaml_path: &Path) -> Result<Self, Self::Error> {
+        let pubspec: Pubspec = serde_yaml::from_str(&fs::read_to_string(yaml_path)?)?;
+        Ok(pubspec)
     }
 }

@@ -18,11 +18,13 @@ pub struct CargoProbe;
 
 impl BuildToolProbe for CargoProbe {
     fn probe(&self, dir: &Path) -> Option<Box<dyn BuildTool>> {
-        if dir.join("Cargo.toml").is_file() {
-            Some(Box::new(Cargo::new(dir)))
-        } else {
-            None
-        }
+        let toml_path = dir.join("Cargo.toml");
+        CargoToml::try_from(toml_path.as_path()).ok().map(|toml| {
+            Box::new(Cargo {
+                dir: dir.to_owned(),
+                toml,
+            }) as Box<dyn BuildTool>
+        })
     }
 
     fn applies_to(&self, kind: BuildToolKind) -> bool {
@@ -35,14 +37,7 @@ impl BuildToolProbe for CargoProbe {
 /// Cargo
 pub struct Cargo {
     dir: PathBuf,
-}
-
-impl Cargo {
-    fn new(dir: &Path) -> Self {
-        Self {
-            dir: dir.to_owned(),
-        }
-    }
+    toml: CargoToml,
 }
 
 static EPHEMERAL_DIRS: &[&str] = &["target"];
@@ -63,14 +58,8 @@ impl BuildTool for Cargo {
     }
 
     fn project_name(&self) -> Option<anyhow::Result<String>> {
-        let toml_path = self.dir.join("Cargo.toml");
-        Some(read_project_name_from_cargo_toml(&toml_path))
+        Some(Ok(self.toml.package.name.clone()))
     }
-}
-
-fn read_project_name_from_cargo_toml(toml_path: &Path) -> anyhow::Result<String> {
-    let cargo_toml: CargoToml = toml::from_str(&fs::read_to_string(toml_path)?)?;
-    Ok(cargo_toml.package.name)
 }
 
 #[derive(Debug, Deserialize)]
@@ -81,4 +70,13 @@ struct CargoToml {
 #[derive(Debug, Deserialize)]
 struct Package {
     name: String,
+}
+
+impl TryFrom<&Path> for CargoToml {
+    type Error = anyhow::Error;
+
+    fn try_from(toml_path: &Path) -> Result<Self, Self::Error> {
+        let cargo_toml: CargoToml = toml::from_str(&fs::read_to_string(toml_path)?)?;
+        Ok(cargo_toml)
+    }
 }
