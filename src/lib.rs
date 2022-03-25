@@ -16,6 +16,7 @@ use dialoguer::{
 };
 use project::Project;
 use std::{
+    collections::{hash_map::Entry, HashMap, HashSet},
     io,
     path::{Path, PathBuf},
 };
@@ -37,17 +38,24 @@ pub fn list(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()
     };
     debug!("listing projects with {project_filter:?}");
 
+    // We use a Set as directories could overlap, and we don't want to print projects multiple times
+    let mut printed_paths: HashSet<PathBuf> = HashSet::new();
     let mut freeable_bytes = 0;
-    for project in projects_below(&cli.directory, &project_filter, &build_tool_manager) {
-        print_project(&project, cli.json)?;
-        freeable_bytes += project
-            .build_tools
-            .iter()
-            .map(|x| match x.status() {
-                Ok(build_tools::BuildStatus::Built { freeable_bytes }) => freeable_bytes,
-                _ => 0,
-            })
-            .sum::<u64>();
+    for directory in cli.directories {
+        for project in projects_below(&directory, &project_filter, &build_tool_manager) {
+            let is_new = printed_paths.insert(project.path.clone());
+            if is_new {
+                print_project(&project, cli.json)?;
+                freeable_bytes += project
+                    .build_tools
+                    .iter()
+                    .map(|x| match x.status() {
+                        Ok(build_tools::BuildStatus::Built { freeable_bytes }) => freeable_bytes,
+                        _ => 0,
+                    })
+                    .sum::<u64>();
+            }
+        }
     }
 
     if !cli.json {
@@ -92,10 +100,15 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
         ProjectFilter { min_stale, status }
     };
 
-    let mut projects = vec![];
-    for project in projects_below(&cli.directory, &project_filter, &build_tool_manager) {
-        print_project(&project, cli.json)?;
-        projects.push(project);
+    // We use a HashMap as directories could overlap, and archiving a directory twice doesn't work
+    let mut projects: HashMap<PathBuf, Project> = HashMap::new();
+    for directory in cli.directories {
+        for project in projects_below(&directory, &project_filter, &build_tool_manager) {
+            if let Entry::Vacant(entry) = projects.entry(project.path.clone()) {
+                print_project(&project, cli.json)?;
+                entry.insert(project);
+            }
+        }
     }
 
     if cli.json && cli.dry_run {
@@ -105,7 +118,7 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
     }
 
     let freeable_bytes = projects
-        .iter()
+        .values()
         .flat_map(|p| p.build_tools.iter())
         .map(|bt| match bt.status() {
             Ok(build_tools::BuildStatus::Built { freeable_bytes }) => freeable_bytes,
@@ -134,7 +147,7 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
             };
 
             if do_continue {
-                for project in &mut projects {
+                for project in projects.values_mut() {
                     project
                         .clean(cli.dry_run)
                         .with_context(|| format!("Failed to clean project {project}"))?;
@@ -179,7 +192,7 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
             })
             .green()
         );
-        let n_projects_without_vcs = projects.iter().filter(|p| p.vcs.is_none()).count();
+        let n_projects_without_vcs = projects.values().filter(|p| p.vcs.is_none()).count();
         if n_projects_without_vcs > 0 {
             println!(
                 "  {}",
@@ -190,7 +203,7 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
                 .red()
             );
             projects
-                .iter()
+                .values()
                 .filter(|p| p.vcs.is_none())
                 .for_each(|p| println!("    {}", style(p.path.display()).dim()));
         }

@@ -28,7 +28,6 @@ Table of contents:
   - [List projects](#list-projects)
   - [Clean projects](#clean-projects)
   - [Clean + archive projects](#clean--archive-projects)
-  - [Use case: automatically run for multiple project directories](#use-case-automatically-run-for-multiple-project-directories)
 - [Hack it](#hack-it)
 - [License](#license)
 
@@ -90,6 +89,15 @@ If you run `makeclean` in a script and don't want the prompt, you can pass `--ye
 makeclean --yes ~/projects
 ```
 
+You can also specify multiple directories at once. For example, to regularly clean up some scratch directories, you could add something like this to crontab or a startup script:
+
+```bash
+makeclean --min-stale=1w --yes \
+  ~/code/rust-playground \
+  ~/code/elm-playground \
+  ~/code/flutter-playground
+```
+
 ### Clean + archive projects
 
 If you also want to archive the projects after cleaning them up, pass `--archive`. For example, the following command would replace the contents of `~/projects/foo` with `~/projects/foo.tar.xz`, after cleaning it:
@@ -105,20 +113,6 @@ To restore the project, use `tar` (which is probably already installed on your s
 ```bash
 cd ~/projects/foo
 tar -xaf foo.tar.xz && rm foo.tar.xz
-```
-
-### Use case: automatically run for multiple project directories
-
-Let's say you have a list of directories where you know you'll create a lot of one-off projects you don't need to keep around in a ready state. You can use the following command to automically process them:
-
-```bash
-$ cat playground.txt
-~/code/rust-playground
-~/code/elm-playground
-~/code/flutter-playground
-
-$ # Replacing newlines with zero-bytes is needed to process whitespace correctly without fiddling around with IFS...
-$ xargs -0 -n 1 makeclean --min-stale=7d --yes < <(tr \\n \\0 <playground.txt)
 ```
 
 ## Hack it

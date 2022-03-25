@@ -1,4 +1,5 @@
 use std::{
+    ffi::OsStr,
     ops::Sub,
     process::Command,
     time::{self, SystemTime},
@@ -203,6 +204,50 @@ fn finds_projects_according_to_min_stale() -> Result<()> {
     // We expect a single line/project
     let project: ProjectDto = serde_json::from_str(output.trim()).unwrap();
     assert_eq!(project.path, canonicalized_str(&project_dir));
+
+    Ok(())
+}
+
+#[test]
+fn accepts_multiple_directories_as_input_and_deduplicates_by_path() -> Result<()> {
+    let root = TempDir::new()?;
+    let project_dir_1 = root.child("p1");
+    let project_dir_2 = root.child("p2");
+    cargo_init(&project_dir_1)?;
+    cargo_init(&project_dir_2)?;
+
+    let output = Command::cargo_bin("makeclean")?
+        .args([
+            OsStr::new("--json"),
+            OsStr::new("--list"),
+            project_dir_1.as_os_str(),
+            project_dir_2.as_os_str(),
+            // The 2nd project dir a 2nd time, which should be deduplicated (i.e., we
+            // still expect only 2 results)
+            project_dir_2.as_os_str(),
+        ])
+        .output()?;
+    dbg!(String::from_utf8(output.stderr)?);
+    assert!(output.status.success());
+    let output = String::from_utf8(output.stdout)?;
+
+    // Both projects are discovered _once_:
+    let projects: Vec<ProjectDto> = output
+        .trim()
+        .lines()
+        .map(|line| serde_json::from_str(line).unwrap())
+        .collect();
+    assert_eq!(
+        projects.len(),
+        2,
+        "Expected both projects, got: {projects:?}"
+    );
+    assert!(projects
+        .iter()
+        .any(|p| p.path == canonicalized_str(&project_dir_1.path())));
+    assert!(projects
+        .iter()
+        .any(|p| p.path == canonicalized_str(&project_dir_2.path())));
 
     Ok(())
 }

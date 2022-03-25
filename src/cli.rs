@@ -58,9 +58,9 @@ pub struct Cli {
     #[clap(short = 'z', long)]
     pub archive: bool,
 
-    /// Recursively searches for project in this directory
+    /// Recursively searches for project in these directories
     #[clap(default_value = ".")]
-    pub directory: PathBuf,
+    pub directories: Vec<PathBuf>,
 }
 
 fn parse_duration(s: &str) -> anyhow::Result<Duration> {

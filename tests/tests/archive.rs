@@ -5,6 +5,7 @@ use assert_fs::{
     TempDir,
 };
 use std::{
+    ffi::OsStr,
     fs::{self, File},
     process::Command,
 };
@@ -65,6 +66,32 @@ fn archive_cleans_then_packs_includes_hidden_files_then_removes_project_files() 
     assert!(!extract_root.child("target").exists());
     // Finally, the hidden file was also included in the zip file:
     assert!(extract_root.child(".hidden-test").exists());
+
+    Ok(())
+}
+
+#[test]
+fn accepts_multiple_directories_as_input_and_deduplicates_by_path() -> Result<()> {
+    let root = TempDir::new()?;
+    let project_dir = root.child("project");
+    cargo_init(&project_dir)?;
+
+    let output = Command::cargo_bin("makeclean")?
+        .args([
+            OsStr::new("--archive"),
+            OsStr::new("--min-stale"),
+            OsStr::new("0"),
+            OsStr::new("--yes"),
+            project_dir.as_os_str(),
+            // This should be deduplicated:
+            project_dir.as_os_str(),
+        ])
+        .output()?;
+
+    // It runs successfully:
+    assert_eq!(String::from_utf8(output.stderr)?.trim(), "");
+    assert!(output.status.success());
+    assert!(project_dir.join("cargo_test_project.tar.xz").exists());
 
     Ok(())
 }
