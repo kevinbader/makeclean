@@ -15,7 +15,7 @@ publish = false # We publish with a GitHub Actions workflow
 allow-branch = ["main"]
 pre-release-commit-message = "Bump version: {{prev_version}} => {{version}}"
 pre-release-replacements = [
-    { file = "README.md", search = "Current release: [a-z0-9\\.-]+", replace = "Current release: {{version}}" },
+    { file = "README.md", search = "Current release: \\[[a-z0-9\\.-]+\\]\\(https://github.com/kevinbader/makeclean/tree/v[a-z0-9\\.-]+\\)", replace = "Current release: [{{version}}](https://github.com/kevinbader/makeclean/tree/v{{version}})" },
     { file = "CHANGELOG.md", search = "Unreleased", replace = "{{version}}", min = 1 },
     { file = "CHANGELOG.md", search = "\\.\\.\\.HEAD", replace = "...{{tag_name}}", exactly = 1 },
     { file = "CHANGELOG.md", search = "ReleaseDate", replace = "{{date}}", min = 1 },
