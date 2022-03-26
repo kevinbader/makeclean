@@ -15,10 +15,11 @@ publish = false # We publish with a GitHub Actions workflow
 allow-branch = ["main"]
 pre-release-commit-message = "Bump version: {{prev_version}} => {{version}}"
 pre-release-replacements = [
+    { file = "README.md", search = "Current release: [a-z0-9\\.-]+", replace = "Current release: {{version}}" },
     { file = "CHANGELOG.md", search = "Unreleased", replace = "{{version}}", min = 1 },
     { file = "CHANGELOG.md", search = "\\.\\.\\.HEAD", replace = "...{{tag_name}}", exactly = 1 },
     { file = "CHANGELOG.md", search = "ReleaseDate", replace = "{{date}}", min = 1 },
-    { file = "CHANGELOG.md", search = "<!-- next-header -->", replace = "<!-- next-header -->\n## [Unreleased] - ReleaseDate\n", exactly = 1 },
+    { file = "CHANGELOG.md", search = "<!-- next-header -->", replace = "<!-- next-header -->\n<!-- ## [Unreleased] - ReleaseDate -->\n", exactly = 1 },
     { file = "CHANGELOG.md", search = "<!-- next-url -->", replace = "<!-- next-url -->\n[Unreleased]: https://github.com/kevinbader/makeclean/compare/{{tag_name}}...HEAD", exactly = 1 },
 ]
 

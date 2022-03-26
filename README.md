@@ -39,6 +39,8 @@ Install using [Cargo](https://doc.rust-lang.org/cargo/getting-started/installati
 cargo install makeclean
 ```
 
+Current release: 0.9.0
+
 ## Usage
 
 Run `makeclean --help` to see all available options.
