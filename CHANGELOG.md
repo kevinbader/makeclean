@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.9.0] - 2022-03-26
+
 - Support multiple directories as input. For example:
 
   ```bash
@@ -25,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The help message (`-h`) now contains the list of possible values for `-t`/`--type`, so you can easily see what you can filter for.
 
 <!-- next-url -->
-[Unreleased]: https://github.com/kevinbader/makeclean/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/kevinbader/makeclean/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/kevinbader/makeclean/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/kevinbader/makeclean/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/kevinbader/makeclean/compare/v0.6.0...v0.7.0
