@@ -29,7 +29,7 @@ use crate::{
     project::{dto::ProjectDto, ProjectFilter, StatusFilter},
 };
 
-/// Implementation of `makeclean --list`
+/// Prints projects to stdout.
 pub fn list(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()> {
     let project_filter = {
         let min_stale = cli.min_stale.unwrap_or_else(Duration::zero);

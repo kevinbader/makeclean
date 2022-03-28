@@ -8,6 +8,33 @@ use crate::build_tools::{
     cargo, elm, flutter, gradle, mix, npm, BuildTool, BuildToolKind, BuildToolProbe,
 };
 
+/// Used to identify build tools (projects).
+///
+/// [`BuildToolManager::probe`] delegates to "probes" that implement
+/// [`BuildToolProbe`]. Given a directory, they return an instance of
+/// [`BuildTool`] if they recognize a corresponding project at that location.
+///
+/// Start with an instance that recognizes all known build tools and optionally
+/// filter them down:
+///
+/// ```
+/// use makeclean::build_tool_manager::BuildToolManager;
+/// use makeclean::build_tools::BuildToolKind::*;
+///
+/// let mut build_tool_manager = BuildToolManager::default();
+/// build_tool_manager.filter(&[Rust, Npm]);
+/// ```
+///
+/// Alternatively, start with an instance with no build tool probe configured
+/// and then register additional probes:
+///
+/// ```
+/// use makeclean::build_tool_manager::BuildToolManager;
+///
+/// let mut build_tool_manager = BuildToolManager::new();
+/// makeclean::build_tools::cargo::register(&mut build_tool_manager);
+/// makeclean::build_tools::npm::register(&mut build_tool_manager);
+/// ```
 pub struct BuildToolManager {
     probes: Vec<Box<dyn BuildToolProbe>>,
 }
