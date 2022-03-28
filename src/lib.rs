@@ -147,12 +147,34 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
             };
 
             if do_continue {
+                // First clean all of them
                 for project in projects.values_mut() {
                     project
                         .clean(cli.dry_run)
                         .with_context(|| format!("Failed to clean project {project}"))?;
+                }
 
-                    if cli.archive {
+                if cli.archive {
+                    // Then we check which one of them should be archived.
+                    //
+                    // Projects are only archived if they're not part of another
+                    // project that is also archived. In other words: we don't
+                    // want nested tar.xz files.
+                    let projects_to_archive: Vec<PathBuf> = projects
+                        .keys()
+                        .filter(|path| {
+                            // A project is part of another considered project, if
+                            // its path is part of another path in projects.keys().
+                            // So: keep it only if no other key starts_with the path.
+                            projects
+                                .keys()
+                                .all(|k| *k == **path || !path.starts_with(k))
+                        })
+                        .cloned()
+                        .collect();
+
+                    for path in projects_to_archive {
+                        let project = projects.get_mut(&path).expect("must be there");
                         project.archive(cli.dry_run).with_context(|| {
                             format!("Failed to archive cleaned project {project}")
                         })?;

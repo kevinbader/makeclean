@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+- Fix: When archiving, subprojects are cleaned but no longer attempted to be archived. This doesn't change the current behavior: subprojects are still included in the tar.xz file as-is and not as nested archives. But previously, the attempt to archive the subproject after the parent project produced an error, and the user needed to execute the command again to continue archiving the remaining projects.
+
 ## [0.9.0] - 2022-03-26
 
 - Support multiple directories as input. For example:
