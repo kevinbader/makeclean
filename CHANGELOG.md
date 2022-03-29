@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- next-header -->
 <!-- ## [Unreleased] - ReleaseDate -->
 
+I'm using it regularly on Linux and MacOS. It works well and has all the features I need, so... happy v1.0! :tada: :rocket:
+
 ## [0.9.1] - 2022-03-28
 
 - Fix: When archiving, subprojects are cleaned but no longer attempted to be archived. This doesn't change the current behavior: subprojects are still included in the tar.xz file as-is and not as nested archives. But previously, the attempt to archive the subproject after the parent project produced an error, and the user needed to execute the command again to continue archiving the remaining projects.
