@@ -29,6 +29,7 @@ Table of contents:
   - [Clean projects](#clean-projects)
   - [Clean + archive projects](#clean--archive-projects)
 - [Hack it](#hack-it)
+  - [Checklist for adding a new build tool](#checklist-for-adding-a-new-build-tool)
 - [License](#license)
 
 ## Installation
@@ -119,9 +120,9 @@ tar -xaf foo.tar.xz && rm foo.tar.xz
 
 ## Hack it
 
-Check out the documentation on crates.io. PRs welcome!
+PRs welcome! Check out the [documentation on crates.io](https://docs.rs/makeclean/) to get started. Feel free to create a GitHub issue if you have any questions.
 
-Checklist for adding a new build tool:
+### Checklist for adding a new build tool
 
 1. Add applicable project types to the `BuildToolKind` enum in [`src/build_tools.rs`](src/build_tools.rs).
 2. Add the new module to [`src/build_tools.rs`](src/build_tools.rs), creating a file below [`src/build_tools/`](src/build_tools/).
