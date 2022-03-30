@@ -4,9 +4,9 @@
 
 use std::path::PathBuf;
 
-use chrono::Duration;
 use clap::Parser;
 use regex::Regex;
+use time::Duration;
 
 use crate::build_tools::BuildToolKind;
 

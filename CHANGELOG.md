@@ -6,7 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- next-header -->
-<!-- ## [Unreleased] - ReleaseDate -->
+## [Unreleased] - ReleaseDate
+
+Replaced [chrono] with [time] to address [RUSTSEC-2020-0159].
+
+[chrono]: https://crates.io/crates/chrono
+[time]: https://crates.io/crates/time
+[RUSTSEC-2020-0159]: https://rustsec.org/advisories/RUSTSEC-2020-0159
 
 ## [1.0.0] - 2022-03-29
 
@@ -14,15 +20,15 @@ I'm using it regularly on Linux and MacOS. It works well and has all the feature
 
 ## [0.9.1] - 2022-03-28
 
-- Fix: When archiving, subprojects are cleaned but no longer attempted to be archived. This doesn't change the current behavior: subprojects are still included in the tar.xz file as-is and not as nested archives. But previously, the attempt to archive the subproject after the parent project produced an error, and the user needed to execute the command again to continue archiving the remaining projects.
+Fix: When archiving, subprojects are cleaned but no longer attempted to be archived. This doesn't change the current behavior: subprojects are still included in the tar.xz file as-is and not as nested archives. But previously, the attempt to archive the subproject after the parent project produced an error, and the user needed to execute the command again to continue archiving the remaining projects.
 
 ## [0.9.0] - 2022-03-26
 
-- Support multiple directories as input. For example:
+Support multiple directories as input. For example:
 
-  ```bash
-  makeclean -l ~/code ~/work ~/projects
-  ```
+```bash
+makeclean -l ~/code ~/work ~/projects
+```
 
 ## [0.8.0] - 2022-03-24
 

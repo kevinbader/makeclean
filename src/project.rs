@@ -11,11 +11,11 @@ use crate::{
     build_tools::{BuildStatus, BuildTool},
 };
 use anyhow::format_err;
-use chrono::{DateTime, Duration, Local, Utc};
 use std::{
     fmt,
     path::{Path, PathBuf},
 };
+use time::{Duration, OffsetDateTime};
 use tracing::{trace, warn};
 
 use self::{mtime::dir_mtime, vcs::VersionControlSystem};
@@ -35,7 +35,7 @@ pub struct Project {
     /// The VCS, if under version control.
     pub vcs: Option<VersionControlSystem>,
     /// When this project was last modified (most recent commit timestamp).
-    pub mtime: DateTime<Utc>,
+    pub mtime: OffsetDateTime,
 }
 
 impl Project {
@@ -70,10 +70,9 @@ impl Project {
 
         let mtime = dir_mtime(path)
             .ok_or_else(|| format_err!("BUG: build tool recognized but no files?!"))?;
-        let mtime: DateTime<Local> = mtime.into();
-        let mtime: DateTime<Utc> = mtime.into();
+        let now = OffsetDateTime::now_utc();
 
-        if Utc::now().signed_duration_since(mtime) < project_filter.min_stale {
+        if (now - mtime) < project_filter.min_stale {
             trace!(
                 ?path,
                 %mtime,

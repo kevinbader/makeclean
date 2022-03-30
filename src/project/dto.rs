@@ -1,6 +1,7 @@
 //! Representation of a [`Project`] used for JSON output.
 
 use serde::{Deserialize, Serialize};
+use time::format_description::well_known::Rfc3339;
 
 use crate::Project;
 
@@ -19,7 +20,7 @@ pub struct ProjectDto {
     pub build_tools: Vec<String>,
     /// The VCS, if under version control.
     pub vcs: Option<VcsDto>,
-    /// When this project was last modified (most recent commit timestamp).
+    /// When this project was last modified (most recent commit timestamp), in RFC3339.
     pub mtime: String,
 }
 
@@ -34,7 +35,10 @@ impl From<&Project> for ProjectDto {
                 .map(|x| x.to_string())
                 .collect::<Vec<_>>(),
             vcs: project.vcs.as_ref().map(VcsDto::from),
-            mtime: project.mtime.to_rfc3339(),
+            mtime: project
+                .mtime
+                .format(&Rfc3339)
+                .expect("can format as RFC3339"),
         }
     }
 }

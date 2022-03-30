@@ -44,7 +44,7 @@ mod test {
         fixture::{FileWriteStr, PathChild, PathCreateDir},
         TempDir,
     };
-    use chrono::Duration;
+    use time::Duration;
 
     use crate::{
         build_tool_manager::BuildToolManager,
@@ -102,7 +102,7 @@ mod test {
 
     fn project_filter() -> ProjectFilter {
         ProjectFilter {
-            min_stale: Duration::zero(),
+            min_stale: Duration::ZERO,
             status: StatusFilter::Any,
         }
     }

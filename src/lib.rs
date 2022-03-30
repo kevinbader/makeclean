@@ -7,7 +7,6 @@ pub mod project;
 
 use anyhow::Context;
 use build_tool_manager::BuildToolManager;
-use chrono::Duration;
 use clap::{CommandFactory, ErrorKind};
 use console::{colors_enabled, style};
 use dialoguer::{
@@ -20,6 +19,7 @@ use std::{
     io,
     path::{Path, PathBuf},
 };
+use time::Duration;
 use tracing::debug;
 
 pub use crate::cli::Cli;
@@ -32,7 +32,7 @@ use crate::{
 /// Prints projects to stdout.
 pub fn list(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()> {
     let project_filter = {
-        let min_stale = cli.min_stale.unwrap_or_else(Duration::zero);
+        let min_stale = cli.min_stale.unwrap_or(Duration::ZERO);
         let status = StatusFilter::Any;
         ProjectFilter { min_stale, status }
     };
@@ -272,8 +272,7 @@ fn pretty_print_project(project: &Project) -> anyhow::Result<()> {
         0 => String::new(),
         bytes => format!("; {}", format_size(bytes)),
     };
-    // See https://docs.rs/chrono/latest/chrono/format/strftime/index.html
-    let mtime = project.mtime.format("%F");
+    let mtime = project.mtime.to_string();
 
     let path = ProjectPath::from(project).render(use_color);
 
