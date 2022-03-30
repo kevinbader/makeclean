@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- next-header -->
-## [Unreleased] - ReleaseDate
+<!-- ## [Unreleased] - ReleaseDate -->
+
+## [1.0.1] - 2022-03-30
 
 Replaced [chrono] with [time] to address [RUSTSEC-2020-0159].
 
@@ -41,7 +43,8 @@ makeclean -l ~/code ~/work ~/projects
 - The help message (`-h`) now contains the list of possible values for `-t`/`--type`, so you can easily see what you can filter for.
 
 <!-- next-url -->
-[Unreleased]: https://github.com/kevinbader/makeclean/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/kevinbader/makeclean/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/kevinbader/makeclean/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/kevinbader/makeclean/compare/v0.9.1...v1.0.0
 [0.9.1]: https://github.com/kevinbader/makeclean/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/kevinbader/makeclean/compare/v0.8.0...v0.9.0
