@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- next-header -->
-## [Unreleased] - ReleaseDate
+<!-- ## [Unreleased] - ReleaseDate -->
+
+## [1.1.0] - 2022-03-31
 
 While `--json` output still uses RFC3339 to represent the projects' modification time (`mtime`), the normal output is now hopefully more readable.
 
@@ -61,7 +63,8 @@ makeclean -l ~/code ~/work ~/projects
 - The help message (`-h`) now contains the list of possible values for `-t`/`--type`, so you can easily see what you can filter for.
 
 <!-- next-url -->
-[Unreleased]: https://github.com/kevinbader/makeclean/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/kevinbader/makeclean/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/kevinbader/makeclean/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/kevinbader/makeclean/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/kevinbader/makeclean/compare/v0.9.1...v1.0.0
 [0.9.1]: https://github.com/kevinbader/makeclean/compare/v0.9.0...v0.9.1
