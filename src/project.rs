@@ -3,7 +3,7 @@
 mod archive;
 mod clean;
 pub mod dto;
-mod mtime;
+pub mod mtime;
 mod vcs;
 
 use crate::{

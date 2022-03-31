@@ -26,7 +26,7 @@ pub use crate::cli::Cli;
 use crate::{
     find_projects::projects_below,
     fs::format_size,
-    project::{dto::ProjectDto, ProjectFilter, StatusFilter},
+    project::{dto::ProjectDto, mtime::HumanReadableElapsed, ProjectFilter, StatusFilter},
 };
 
 /// Prints projects to stdout.
@@ -272,7 +272,7 @@ fn pretty_print_project(project: &Project) -> anyhow::Result<()> {
         0 => String::new(),
         bytes => format!("; {}", format_size(bytes)),
     };
-    let mtime = project.mtime.to_string();
+    let mtime = project.mtime.human_readable_elapsed();
 
     let path = ProjectPath::from(project).render(use_color);
 

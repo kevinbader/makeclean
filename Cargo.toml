@@ -46,7 +46,7 @@ serde_yaml = "0.8.23"
 tabular = "0.1.4"
 tar = "0.4.38"
 thiserror = "1.0.30"
-time = { version = "0.3.9", features = ["formatting"] }
+time = { version = "0.3.9", features = ["formatting", "macros"] }
 toml = "0.5.8"
 tracing = "0.1.26"
 tracing-subscriber = { version = "0.3.8", features = ["json"] }

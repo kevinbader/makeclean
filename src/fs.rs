@@ -19,10 +19,10 @@ pub(crate) fn dir_size(path: &Path) -> u64 {
 
 #[allow(non_upper_case_globals)]
 pub fn format_size(bytes: u64) -> String {
-    const KiB: u64 = 1024;
-    const MiB: u64 = KiB * 1024;
-    const GiB: u64 = MiB * 1024;
-    const TiB: u64 = GiB * 1024;
+    static KiB: u64 = 1024;
+    static MiB: u64 = KiB * 1024;
+    static GiB: u64 = MiB * 1024;
+    static TiB: u64 = GiB * 1024;
     match bytes {
         n if n < 3 * KiB => format!("{} B", n),
         n if n < 3 * MiB => format!("{} KiB", n / KiB),

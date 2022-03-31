@@ -6,7 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- next-header -->
-<!-- ## [Unreleased] - ReleaseDate -->
+## [Unreleased] - ReleaseDate
+
+While `--json` output still uses RFC3339 to represent the projects' modification time (`mtime`), the normal output is now hopefully more readable.
+
+Before:
+
+```plain
+/home/user/foo (Flutter; Git; 2020-04-05 21:29:43.218548148 +00:00:00)
+/home/user/bar (Cargo; Git; 2022-03-27 18:44:52.392081834 +00:00:00; 3 GiB)
+/home/user/baz (Cargo; Git; 2022-03-31 17:48:51.699752798 +00:00:00; 1321 MiB)
+```
+
+Now:
+
+```plain
+/home/user/foo (Flutter; Git; a year ago)
+/home/user/bar (Cargo; Git; last week; 3 GiB)
+/home/user/baz (Cargo; Git; just now; 1321 MiB)
+```
 
 ## [1.0.1] - 2022-03-30
 
