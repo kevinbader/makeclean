@@ -43,11 +43,11 @@ pub fn list(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<()
     let mut freeable_bytes = 0;
     for directory in cli.directories {
         for project in projects_below(&directory, &project_filter, &build_tool_manager) {
-            let is_new = printed_paths.insert(project.path.clone());
+            let is_new = printed_paths.insert(project.path().to_owned());
             if is_new {
                 print_project(&project, cli.json)?;
                 freeable_bytes += project
-                    .build_tools
+                    .build_tools()
                     .iter()
                     .map(|x| match x.status() {
                         Ok(build_tools::BuildStatus::Built { freeable_bytes }) => freeable_bytes,
@@ -104,7 +104,7 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
     let mut projects: HashMap<PathBuf, Project> = HashMap::new();
     for directory in cli.directories {
         for project in projects_below(&directory, &project_filter, &build_tool_manager) {
-            if let Entry::Vacant(entry) = projects.entry(project.path.clone()) {
+            if let Entry::Vacant(entry) = projects.entry(project.path().to_owned()) {
                 print_project(&project, cli.json)?;
                 entry.insert(project);
             }
@@ -119,7 +119,7 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
 
     let freeable_bytes = projects
         .values()
-        .flat_map(|p| p.build_tools.iter())
+        .flat_map(|p| p.build_tools().iter())
         .map(|bt| match bt.status() {
             Ok(build_tools::BuildStatus::Built { freeable_bytes }) => freeable_bytes,
             _ => 0,
@@ -214,7 +214,7 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
             })
             .green()
         );
-        let n_projects_without_vcs = projects.values().filter(|p| p.vcs.is_none()).count();
+        let n_projects_without_vcs = projects.values().filter(|p| p.vcs().is_none()).count();
         if n_projects_without_vcs > 0 {
             println!(
                 "  {}",
@@ -226,8 +226,8 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
             );
             projects
                 .values()
-                .filter(|p| p.vcs.is_none())
-                .for_each(|p| println!("    {}", style(p.path.display()).dim()));
+                .filter(|p| p.vcs().is_none())
+                .for_each(|p| println!("    {}", style(p.path().display()).dim()));
         }
     }
 
@@ -258,13 +258,13 @@ fn pretty_print_project(project: &Project) -> anyhow::Result<()> {
     let use_color = colors_enabled();
 
     let tools = project
-        .build_tools
+        .build_tools()
         .iter()
         .map(|x| x.to_string())
         .collect::<Vec<_>>()
         .join(", ");
     let vcs = project
-        .vcs
+        .vcs()
         .as_ref()
         .map(|x| x.name())
         .unwrap_or_else(|| "no VCS");
@@ -272,7 +272,7 @@ fn pretty_print_project(project: &Project) -> anyhow::Result<()> {
         0 => String::new(),
         bytes => format!("; {}", format_size(bytes)),
     };
-    let mtime = project.mtime.human_readable_elapsed();
+    let mtime = project.mtime().human_readable_elapsed();
 
     let path = ProjectPath::from(project).render(use_color);
 
@@ -299,9 +299,9 @@ struct ProjectPath {
 impl ProjectPath {
     fn from(project: &Project) -> Self {
         // normalize, i.e., remove trailing slash
-        let path: PathBuf = project.path.components().collect();
+        let path: PathBuf = project.path().components().collect();
 
-        if let Some(vcs_root) = project.vcs.as_ref().map(|vcs| vcs.root()) {
+        if let Some(vcs_root) = project.vcs().as_ref().map(|vcs| vcs.root()) {
             match path.strip_prefix(&vcs_root) {
                 Ok(postfix) if postfix == Path::new("") => {
                     // The project is at the root of its repository; we treat it as if there

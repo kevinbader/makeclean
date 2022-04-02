@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- next-header -->
-<!-- ## [Unreleased] - ReleaseDate -->
+## [Unreleased] - ReleaseDate
+
+No changes for end users. For developers:
+
+- **Breaking change**: the `Project` struct no longer exposes its fields directly. Instead, functions now provide read-only access.
 
 ## [1.1.0] - 2022-03-31
 

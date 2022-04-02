@@ -118,7 +118,7 @@ mod test {
 
         dbg!(&projects);
         assert_eq!(projects.len(), 1);
-        assert_eq!(projects[0].path, path);
+        assert_eq!(projects[0].path(), path);
     }
 
     #[test]
@@ -136,7 +136,7 @@ mod test {
 
         dbg!(&projects);
         assert_eq!(projects.len(), 1);
-        assert_eq!(projects[0].path, subdir_path);
+        assert_eq!(projects[0].path(), subdir_path);
     }
 
     #[test]
@@ -156,8 +156,8 @@ mod test {
         dbg!(&projects);
         assert_eq!(projects.len(), 2);
         // we expect BFS ordering
-        assert_eq!(projects[0].path, root_path);
-        assert_eq!(projects[1].path, subdir_path);
+        assert_eq!(projects[0].path(), root_path);
+        assert_eq!(projects[1].path(), subdir_path);
     }
 
     #[test]

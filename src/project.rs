@@ -23,19 +23,11 @@ use self::{mtime::dir_mtime, vcs::VersionControlSystem};
 /// Main entity.
 #[derive(Debug)]
 pub struct Project {
-    /// The name of project.
-    ///
-    /// Typically what the first build tool thinks it's called or the name of
-    /// the enclosing folder.
-    pub name: String,
-    /// Where this project is located.
-    pub path: PathBuf,
-    /// The build tools used.
-    pub build_tools: Vec<Box<dyn BuildTool>>,
-    /// The VCS, if under version control.
-    pub vcs: Option<VersionControlSystem>,
-    /// When this project was last modified (most recent commit timestamp).
-    pub mtime: OffsetDateTime,
+    name: String,
+    path: PathBuf,
+    build_tools: Vec<Box<dyn BuildTool>>,
+    vcs: Option<VersionControlSystem>,
+    mtime: OffsetDateTime,
 }
 
 impl Project {
@@ -93,6 +85,35 @@ impl Project {
         }))
     }
 
+    /// The name of project.
+    ///
+    /// Typically what the first build tool thinks it's called or the name of
+    /// the enclosing folder.
+    pub fn name(&self) -> &str {
+        self.name.as_str()
+    }
+
+    /// Where this project is located.
+    pub fn path(&self) -> &Path {
+        self.path.as_path()
+    }
+
+    /// The build tools used.
+    pub fn build_tools(&self) -> &[Box<dyn BuildTool>] {
+        &self.build_tools
+    }
+
+    /// The VCS, if under version control.
+    pub fn vcs(&self) -> Option<&VersionControlSystem> {
+        self.vcs.as_ref()
+    }
+
+    /// When this project was last modified (most recent commit timestamp).
+    pub fn mtime(&self) -> OffsetDateTime {
+        self.mtime
+    }
+
+    /// How much space can potentially be freed up by cleaning this project.
     pub fn freeable_bytes(&self) -> u64 {
         self.build_tools
             .iter()
