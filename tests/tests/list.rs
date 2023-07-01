@@ -53,7 +53,7 @@ fn directories_ignored_by_git_are_not_considered() -> Result<()> {
 
     // Only the project in `normal_dir` is returned:
     let project: ProjectDto = serde_json::from_str(output.trim()).unwrap();
-    assert_eq!(project.path, canonicalized_str(&root.join("normal_dir")));
+    assert_eq!(project.path, canonicalized_str(root.join("normal_dir")));
 
     Ok(())
 }
@@ -86,10 +86,10 @@ fn subprojects_are_discovered() -> Result<()> {
     );
     assert!(projects
         .iter()
-        .any(|p| p.path == canonicalized_str(&root.path()) && p.build_tools == vec!["Cargo"]));
+        .any(|p| p.path == canonicalized_str(root.path()) && p.build_tools == vec!["Cargo"]));
     assert!(projects
         .iter()
-        .any(|p| p.path == canonicalized_str(&root.join("web")) && p.build_tools == vec!["NPM"]));
+        .any(|p| p.path == canonicalized_str(root.join("web")) && p.build_tools == vec!["NPM"]));
 
     Ok(())
 }
@@ -244,10 +244,10 @@ fn accepts_multiple_directories_as_input_and_deduplicates_by_path() -> Result<()
     );
     assert!(projects
         .iter()
-        .any(|p| p.path == canonicalized_str(&project_dir_1.path())));
+        .any(|p| p.path == canonicalized_str(project_dir_1.path())));
     assert!(projects
         .iter()
-        .any(|p| p.path == canonicalized_str(&project_dir_2.path())));
+        .any(|p| p.path == canonicalized_str(project_dir_2.path())));
 
     Ok(())
 }

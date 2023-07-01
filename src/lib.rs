@@ -236,7 +236,7 @@ pub fn clean(cli: Cli, build_tool_manager: BuildToolManager) -> anyhow::Result<(
 
 fn theme() -> Box<dyn Theme> {
     if colors_enabled() {
-        Box::new(ColorfulTheme::default())
+        Box::<ColorfulTheme>::default()
     } else {
         Box::new(SimpleTheme {})
     }

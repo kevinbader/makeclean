@@ -15,7 +15,7 @@ where
     T: PathChild + AsRef<Path>,
 {
     fs::create_dir_all(parent.as_ref()).unwrap();
-    let repo = Repository::init(&parent).unwrap();
+    let repo = Repository::init(parent).unwrap();
 
     if !gitignore.is_empty() {
         let gitignore_path = parent.child(".gitignore");

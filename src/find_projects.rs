@@ -13,7 +13,7 @@ pub fn projects_below<'a>(
 ) -> impl Iterator<Item = Project> + 'a {
     let path = path.canonicalize().expect("canonicalized path");
 
-    WalkBuilder::new(&path)
+    WalkBuilder::new(path)
         .standard_filters(true)
         // skip ignored directories even outside Git repositories
         .require_git(false)
@@ -87,7 +87,7 @@ mod test {
         let _ = OpenOptions::new()
             .create_new(true)
             .write(true)
-            .open(&path.as_ref().join("projectfile"))
+            .open(path.as_ref().join("projectfile"))
             .expect("creating the fake project");
     }
 
@@ -169,7 +169,7 @@ mod test {
         hidden_dir.create_dir_all().unwrap();
         let hidden_dir_path = hidden_dir.path().canonicalize().unwrap();
 
-        fake_project_at(&hidden_dir_path);
+        fake_project_at(hidden_dir_path);
         let projects: Vec<Project> =
             projects_below(&root_path, &project_filter(), &build_tool_manager()).collect();
 
@@ -189,7 +189,7 @@ mod test {
         ignored_dir.create_dir_all().unwrap();
         let ignored_dir_path = ignored_dir.path().canonicalize().unwrap();
 
-        fake_project_at(&ignored_dir_path);
+        fake_project_at(ignored_dir_path);
         let projects: Vec<Project> =
             projects_below(&root_path, &project_filter(), &build_tool_manager()).collect();
 

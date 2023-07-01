@@ -57,7 +57,7 @@ impl Project {
         tempdir.close()?;
 
         // Remove the project's contents
-        fs::remove_dir_all(&renamed_project_path)?;
+        fs::remove_dir_all(renamed_project_path)?;
 
         Ok(final_tar_xz_path)
     }

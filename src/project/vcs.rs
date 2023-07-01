@@ -93,7 +93,7 @@ mod test {
         level1_ignored_dir.create_dir_all()?;
 
         root.child(".gitignore").write_str("/foo/ignored_dir")?;
-        let _ = Repository::init(&root.path())?;
+        let _ = Repository::init(root.path())?;
 
         // We operate in the "foo" subdirectory
         let vcs = VersionControlSystem::try_from(&path_of(&level0_foo))

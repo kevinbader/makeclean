@@ -55,7 +55,7 @@ fn archive_cleans_then_packs_includes_hidden_files_then_removes_project_files() 
     // Let's use a new temporary directory for this..
     let extract_root = TempDir::new()?;
 
-    let tar_xz = File::open(&project_dir.join(fname)).unwrap();
+    let tar_xz = File::open(project_dir.join(fname)).unwrap();
     let tar = XzDecoder::new(tar_xz);
     let mut archive = tar::Archive::new(tar);
     archive.unpack(extract_root.path()).unwrap();
@@ -119,7 +119,7 @@ fn any_projects_within_a_to_be_archived_project_are_only_cleaned_but_not_archive
 
     // Extract the result:
     let extract_root = TempDir::new()?;
-    let tar_xz = File::open(&project_dir.join("cargo_test_project.tar.xz")).unwrap();
+    let tar_xz = File::open(project_dir.join("cargo_test_project.tar.xz")).unwrap();
     let tar = XzDecoder::new(tar_xz);
     let mut archive = tar::Archive::new(tar);
     archive.unpack(extract_root.path()).unwrap();
