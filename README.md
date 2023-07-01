@@ -40,7 +40,7 @@ Install using [Cargo](https://doc.rust-lang.org/cargo/getting-started/installati
 cargo install makeclean
 ```
 
-Current release: [1.1.0](https://github.com/kevinbader/makeclean/tree/v1.1.0)
+Current release: [1.2.0](https://github.com/kevinbader/makeclean/tree/v1.2.0)
 
 ## Usage
 
