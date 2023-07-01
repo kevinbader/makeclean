@@ -8,9 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
-No changes for end users. For developers:
+Within node_modules directories, NPM projects are now ignored. Unless you use the directory name `node_modules` for anything else than NPM _dependencies_, `makeclean` will behave the same while cleaning, but it no longer lists NPM project dependencies as projects of their own.
 
-- **Breaking change**: the `Project` struct no longer exposes its fields directly. Instead, functions now provide read-only access.
+**Breaking change** for developers: the `Project` struct no longer exposes its fields directly. Instead, functions now provide read-only access.
 
 ## [1.1.0] - 2022-03-31
 

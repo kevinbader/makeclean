@@ -1,4 +1,5 @@
 use displaydoc::Display;
+use tracing::debug;
 
 use super::{remove_dirs, status_from_dirs, BuildStatus, BuildTool, BuildToolKind, BuildToolProbe};
 use crate::build_tool_manager::BuildToolManager;
@@ -14,6 +15,13 @@ pub struct NpmProbe;
 
 impl BuildToolProbe for NpmProbe {
     fn probe(&self, dir: &Path) -> Option<Box<dyn BuildTool>> {
+        // If we're within a node_modules directory, we assume this is a
+        // dependency and shouldn't be cleansed by itself.
+        if dir.components().any(|x| x.as_os_str() == "node_modules") {
+            debug!("ignoring directory within node_modules dir at {:?}", dir);
+            return None;
+        }
+
         if dir.join("package.json").is_file() {
             Some(Box::new(Npm {
                 dir: dir.to_owned(),

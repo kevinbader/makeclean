@@ -56,3 +56,29 @@ fn recognizes_projects() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn ignores_npm_projects_within_node_modules() -> Result<()> {
+    let root = TempDir::new()?;
+    let project_dir = root.child("npm_project");
+    npm_init(&project_dir).with_context(|| "failed to init parent project")?;
+    let dep_dir = root.child("node_modules/the_dependency");
+    npm_init(&dep_dir).with_context(|| "failed to init dependency project within node_modules")?;
+
+    let output = Command::cargo_bin("makeclean")?
+        .args(["--list", "--json"])
+        .current_dir(&root)
+        .output()?;
+    dbg!(String::from_utf8(output.stderr)?);
+    assert!(output.status.success());
+    let output = String::from_utf8(output.stdout)?;
+
+    // We expect a single line/project
+    let project: ProjectDto = serde_json::from_str(output.trim())
+        .with_context(|| format!("failed to deserialize '{}'", output.trim()))?;
+    assert_eq!(project.path, canonicalized_str(&project_dir));
+    assert_eq!(project.build_tools.len(), 1);
+
+    root.close()?;
+    Ok(())
+}
