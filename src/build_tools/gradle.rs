@@ -14,11 +14,14 @@ pub struct GradleProbe;
 
 impl BuildToolProbe for GradleProbe {
     fn probe(&self, dir: &Path) -> Option<Box<dyn BuildTool>> {
-        // We expect two files to be present
-        let build_gradle = dir.join("build.gradle");
-        let settings_gradle = dir.join("settings.gradle");
+        // We expect two files to be present, either in Groovy or in Kotlin.
+        let is_gradle_groovy =
+            dir.join("build.gradle").is_file() && dir.join("settings.gradle").is_file();
 
-        if build_gradle.is_file() && settings_gradle.is_file() {
+        let is_gradle_kotlin =
+            dir.join("build.gradle.kts").is_file() && dir.join("settings.gradle.kts").is_file();
+
+        if is_gradle_groovy || is_gradle_kotlin {
             Some(Box::new(Gradle {
                 dir: dir.to_owned(),
             }))

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+- Gradle projects that use Kotlin instead of Groovy are now identified as well.
 - Remove openssl dependency. It came with the `git2` dependency as a default feature, but we since we don't clone/fetch anything via HTTPS or SSH, we don't need it.
 
 <!-- ## [1.2.1] - 2023-07-01 -->
