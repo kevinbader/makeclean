@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- next-header -->
-## [Unreleased] - ReleaseDate
+<!-- ## [Unreleased] - ReleaseDate -->
+
+## [1.3.0] - 2024-09-09
 
 - Gradle projects that use Kotlin instead of Groovy are now identified as well.
 - Remove openssl dependency. It came with the `git2` dependency as a default feature, but we since we don't clone/fetch anything via HTTPS or SSH, we don't need it.
@@ -74,7 +76,8 @@ makeclean -l ~/code ~/work ~/projects
 - The help message (`-h`) now contains the list of possible values for `-t`/`--type`, so you can easily see what you can filter for.
 
 <!-- next-url -->
-[Unreleased]: https://github.com/kevinbader/makeclean/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/kevinbader/makeclean/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/kevinbader/makeclean/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/kevinbader/makeclean/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/kevinbader/makeclean/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/kevinbader/makeclean/compare/v1.0.1...v1.1.0
