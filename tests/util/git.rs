@@ -21,7 +21,6 @@ where
         let gitignore_path = parent.child(".gitignore");
         let mut gitignore_file = fs::OpenOptions::new()
             .create(true)
-            .write(true)
             .append(true)
             .open(gitignore_path)
             .unwrap();

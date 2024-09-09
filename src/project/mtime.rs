@@ -75,7 +75,7 @@ fn human_readable_elapsed(since: OffsetDateTime, now: OffsetDateTime) -> Cow<'st
 
         n if n > 9 => format!("{n} minutes ago").into(),
         n if n > 1 => "a few minutes ago".into(),
-        n if n == 1 => "a minute ago".into(),
+        1 => "a minute ago".into(),
         _ => "just now".into(),
     }
 }
